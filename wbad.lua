@@ -1,7 +1,7 @@
--- title:   Invisibrawl
--- author:  postgoodism
--- desc:    A deathmatch game for 2-4 players where everybody is invisible.
--- site:    github.com/cdwfs/invisibrawl
+-- title:   Water Balloons At Dawn
+-- author:  Bitterly Indifferent Games
+-- desc:    Stealth-focused water-balloon fight game for 2-4 players.
+-- site:    github.com/cdwfs/wbad
 -- license: Creative Commons Zero v1.0 Universal
 -- version: 0.1
 -- script:  lua
