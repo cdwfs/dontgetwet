@@ -25,7 +25,7 @@ SF_PLAYER=1
 
 -- make an oop-like object.
 -- see www.lexaloffle.com/bbs/?tid=49047
-_g=_ENV
+_g=_ENV -- store global environment for future reference
 function obj(t)
  return setmetatable(t,{__index=_ENV})
 end
@@ -302,35 +302,76 @@ function cb_enter(args)
   players={}, -- see cb_init_players()
   live_player_count=args.player_count,
  })
+ -- adjust clip rects based on player count
+ local pid_clips={
+  {  0, 0,240,136},
+  {120, 0,120,136},
+  {  0,68,120, 68},
+  {120,68,120, 68},
+ }
+ if cb.all_player_count>=2 then
+  pid_clips[1][3]=120
+ end
+ if cb.all_player_count>=3 then
+  pid_clips[1][4]=68
+  pid_clips[2][4]=68
+ end
+ cb.clips=pid_clips
  cb_init_players(cb)
  return cb
 end
 
-function cb_init_players(cb)
- -- initialize players
- -- x,y are the coordinates of the top-left corner
- -- dir is 0-7: 0=N, 1=NE, 2=E, etc.
- -- firing is true if the player has the fire key held. When it is released, they fire an arrow.
- -- killer is either nil or {arrow,ox,oy}. ox,oy are offset of arrow from players.
- -- - ox/oy are an offset from the arrow's positition.
- cb.players={
-  {x=16,y=16,c= 2,pid=1,dir=0,speed=1,firing=false,killer=nil,clip={  0, 0,240,136}},
-  {x=16,y=64,c= 4,pid=2,dir=0,speed=1,firing=false,killer=nil,clip={120, 0,120,136}},
-  {x=40,y=30,c= 6,pid=3,dir=0,speed=1,firing=false,killer=nil,clip={  0,68,120, 68}},
-  {x=80,y=60,c=10,pid=4,dir=0,speed=1,firing=false,killer=nil,clip={120,68,120, 68}},
+function cb_create_player(pid)
+ local pid_colors={2,4,6,10}
+ return {
+  --[[
+  notes on player coordinates:
+  - positions are for the player's
+    upper-left corner
+  - fx,fy are raw floating-point pos,
+    which should only be used for motion.
+  - px,py are fx,fy rounded to the nearest
+    pixel (always integers)
+  - dx,dy are the player's current raw
+    movement in each axis: -1,0,1
+    (later scaled by speed)
+  - cx,cy are the pixel offsets to the
+    current player's viewport. They
+    must be added to everything drawn
+    in a player's view.
+  ]]
+  fx=0,
+  fy=0,
+  px=0,
+  py=0,
+  dx=0,
+  dy=0,
+  cx=0,
+  cy=0,
+  color=pid_colors[pid],
+  pid=pid,
+  dir=0, -- 0-7: 0=N, 1=NE, 2=E, etc.
+  speed=1, -- how far to move in current dir per frame
+  dead=false,
  }
- -- adjust clip rects based on player count
- if cb.all_player_count==2 then
-  cb.players[1].clip[3]=120
- elseif cb.all_player_count>=3 then
-  cb.players[1].clip[3]=120
-  cb.players[1].clip[4]=68
-  cb.players[2].clip[4]=68
+end
+function cb_init_players(cb)
+ local spawns={
+  {16,16}, {16,64},
+  {40,30}, {80,60},
+ }
+ for pid=1,cb.all_player_count do
+  local p=cb_create_player(pid)
+  p.fx,p.fy=table.unpack(spawns[pid])
+  -- todo: use fx,fy for movement
+  -- and round afterwards
+  p.px=math.floor(p.fx+0.5)
+  p.py=math.floor(p.fy+0.5)
+  local pclip=cb.clips[pid]
+  p.cx=pclip[1]+pclip[3]/2
+  p.cy=pclip[2]+pclip[4]/2
+  table.insert(cb.players,p)
  end
- -- trim unused players
- if cb.all_player_count<4 then cb.players[4]=nil end
- if cb.all_player_count<3 then cb.players[3]=nil end
- if cb.all_player_count<2 then cb.players[2]=nil end
 end
 
 function cb_leave(_ENV)
@@ -345,37 +386,32 @@ function cb_update(_ENV)
  end
  for _,p in ipairs(players) do
   local pb0=8*(p.pid-1)
-  local dy=(btn(pb0+0) and -1 or 0)+(btn(pb0+1) and 1 or 0)
-  local dx=(btn(pb0+2) and -1 or 0)+(btn(pb0+3) and 1 or 0)
-  if p.dead then
-   p.x=p.killer.arrow.x+p.killer.ox
-   p.y=p.killer.arrow.y+p.killer.oy
-   goto end_player_update
-  end
+  p.dy=(btn(pb0+0) and -1 or 0)+(btn(pb0+1) and 1 or 0)
+  p.dx=(btn(pb0+2) and -1 or 0)+(btn(pb0+3) and 1 or 0)
   -- TODO: walk one pixel at a time
   local s=p.speed
-  if dy<0 and -- up
-     is_walkable(p.x,p.y-1) and
-     is_walkable(p.x+15,p.y-1) then
-   p.y=p.y-s
-  elseif dy>0 and -- down
-         is_walkable(p.x,p.y+1+15) and
-         is_walkable(p.x+15,p.y+1+15) then
-   p.y=p.y+s
+  if p.dy<0 and -- up
+     is_walkable(p.px,p.py-1) and
+     is_walkable(p.px+15,p.py-1) then
+   p.py=p.py-s
+  elseif p.dy>0 and -- down
+         is_walkable(p.px,p.py+1+15) and
+         is_walkable(p.px+15,p.py+1+15) then
+   p.py=p.py+s
   end
-  if dx<0 and -- left
-     is_walkable(p.x-1,p.y) and
-     is_walkable(p.x-1,p.y+15) then
-   p.x=p.x-s
-  elseif dx>0 and -- right
-         is_walkable(p.x+1+15,p.y) and
-         is_walkable(p.x+1+15,p.y+15) then
-   p.x=p.x+s
+  if p.dx<0 and -- left
+     is_walkable(p.px-1,p.py) and
+     is_walkable(p.px-1,p.py+15) then
+   p.px=p.px-s
+  elseif p.dx>0 and -- right
+         is_walkable(p.px+1+15,p.py) and
+         is_walkable(p.px+1+15,p.py+15) then
+   p.px=p.px+s
   end
-  -- Update player's facing direction, if input was
-  -- pressed.
+  -- Update player's facing direction,
+  -- if input was pressed.
   local dir_lut={[0]=7,0,1,6,-1,2,5,4,3}
-  local dir=dir_lut[3*(dy+1)+(dx+1)]
+  local dir=dir_lut[3*(p.dy+1)+(p.dx+1)]
   if dir>=0 then p.dir=dir end
   ::end_player_update::
  end
@@ -385,23 +421,30 @@ function cb_draw(_ENV)
  clip()
  cls(0)
  -- draw each player's viewport
- for _,p in ipairs(players) do
-  clip(table.unpack(p.clip))
-  local cx,cy=p.clip[1]+p.clip[3]/2,p.clip[2]+p.clip[4]/2
- 	map(0,0,30,17,cx-p.x, cy-p.y)
-  draw_player(p,cx,cy)
+ for pid,p in ipairs(players) do
+  local pclip=clips[pid]
+  clip(table.unpack(pclip))
+  -- draw map
+  map(0,0,30,17,p.cx-p.px,p.cy-p.py)
+  -- draw the player. TODO: draw all visible players.
+  draw_player(p,p.cx,p.cy)
   for _,p2 in ipairs(players) do -- draw corpses
    if p2.dead and p2~=p then
-    draw_player(p2,cx+p2.x-p.x,cy+p2.y-p.y)
+    draw_player(p2,
+     p.cx+p2.px-p.px,
+     p.cy+p2.py-p.py)
    end
   end
+  -- draw "game over" message for eliminated players
   if p.dead then
-   rect(cx-38,cy-20,75,9,0)
-   rectb(cx-38,cy-20,75,9,p.c)
-   local w=print("KILLED BY PX",cx-36,cy-18,p.c,true)
+   rect(p.cx-38,p.cy-20,75,9,0)
+   rectb(p.cx-38,p.cy-20,75,9,p.color)
+   local w=print("KILLED BY PX",p.cx-36,p.cy-18,p.color,true)
   end
-  -- draw border
-  rectb(p.clip[1],p.clip[2],p.clip[3],p.clip[4],p.c)
+  -- draw border.
+  -- TODO: perhaps cx,cy should be the inside of this
+  -- border?
+  rectb(pclip[1],pclip[2],pclip[3],pclip[4],p.color)
  end
 end
 
@@ -420,19 +463,17 @@ function draw_player(player,cx,cy)
   flip=1
  end
  -- animate if the player is alive and moving.
- -- TODO:track velocity instead of reading button presses
- local bb=(p.pid-1)*8
  if not p.dead
- and (btn(bb+0) or btn(bb+1) or btn(bb+2) or btn(bb+3)) then
+ and (p.dx~=0 or p.dy~=0) then
   sid=sid+2+2*((mode_frames//4)%2)
  end
  -- draw player
- local player_colors={2,4,6,10}
  local prev=peek4(2*0x03FF0+2)
- poke4(2*0x03FF0+2,player_colors[p.pid])
+ poke4(2*0x03FF0+2,p.color)
  spr(sid,cx,cy,5,1,flip,0,2,2)
  poke4(2*0x03FF0+2,prev)
 end
+
 -- <TILES>
 -- 004:0000000000600505076575760066565606655666005776670077766507777666
 -- 005:0000000060070060676566656566676677766566755677665566556566666665
