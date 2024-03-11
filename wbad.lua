@@ -18,7 +18,7 @@ SFX_FOO=0
 -- music patterns
 MUS_MENU=0
 -- sprite ids
-SID_PLAYER=292
+SID_PLAYER=352
 -- sprite flags
 SF_IMPASSABLE=0
 SF_PLAYER=1
@@ -390,23 +390,27 @@ function cb_update(_ENV)
   p.dx=(btn(pb0+2) and -1 or 0)+(btn(pb0+3) and 1 or 0)
   -- TODO: walk one pixel at a time
   local s=p.speed
-  if p.dy<0 and -- up
-     is_walkable(p.px,p.py-1) and
-     is_walkable(p.px+15,p.py-1) then
-   p.py=p.py-s
-  elseif p.dy>0 and -- down
-         is_walkable(p.px,p.py+1+15) and
-         is_walkable(p.px+15,p.py+1+15) then
-   p.py=p.py+s
+  if p.dy<0 then -- up
+   if is_walkable(p.px,p.py-1)
+   and is_walkable(p.px+7,p.py-1) then
+    p.py=p.py-s
+   end
+  elseif p.dy>0 then -- down
+   if is_walkable(p.px,p.py+1+7)
+   and is_walkable(p.px+7,p.py+1+7) then
+    p.py=p.py+s
+   end
   end
-  if p.dx<0 and -- left
-     is_walkable(p.px-1,p.py) and
-     is_walkable(p.px-1,p.py+15) then
-   p.px=p.px-s
-  elseif p.dx>0 and -- right
-         is_walkable(p.px+1+15,p.py) and
-         is_walkable(p.px+1+15,p.py+15) then
-   p.px=p.px+s
+  if p.dx<0 then -- left
+   if is_walkable(p.px-1,p.py)
+   and is_walkable(p.px-1,p.py+7) then
+    p.px=p.px-s
+   end
+  elseif p.dx>0 then -- right
+   if is_walkable(p.px+1+7,p.py)
+   and is_walkable(p.px+1+7,p.py+7) then
+    p.px=p.px+s
+   end
   end
   -- Update player's facing direction,
   -- if input was pressed.
@@ -453,6 +457,7 @@ function draw_player(player,cx,cy)
  local d=p.dir
  local sid=SID_PLAYER
  local flip=0
+ --[[
  -- dirs are 0-7: 0=N, 1=NE, 2=E etc.
  if d==0 then -- up
   sid=sid+64
@@ -467,10 +472,11 @@ function draw_player(player,cx,cy)
  and (p.dx~=0 or p.dy~=0) then
   sid=sid+2+2*((mode_frames//4)%2)
  end
+ ]]
  -- draw player
  local prev=peek4(2*0x03FF0+2)
  poke4(2*0x03FF0+2,p.color)
- spr(sid,cx,cy,5,1,flip,0,2,2)
+ spr(sid,cx,cy-8,5,1,flip,0,1,2)
  poke4(2*0x03FF0+2,prev)
 end
 
@@ -547,12 +553,14 @@ end
 -- 087:ccccc555cccccc55ccc5cc55ccc55c55ccc55555ccc555555cc555555dd55555
 -- 088:555ccccc555ccccc55cccccc5ccc5ccc55555ccc55555ccc55555cc555555dd5
 -- 089:ccccc555cccccc55ccc5cc55ccc55c55ccc55555ccc555555dd5555555555555
+-- 096:5552255555222255555dd55555cccc555cdccdc5cd5cc5dccd5cc5dc555cc555
 -- 100:5552222255222222522222225222222252222222522222225222222255222222
 -- 101:2222555522222555222222252222222522222225222222252222222522222cc5
 -- 102:5552222255222222522222225222222252222222522222225222222255222222
 -- 103:2222555522222555222222252222222522222225222222252222222522222cc5
 -- 104:5552222255222222522222225222222252222222522222225222222255222222
 -- 105:2222555522222555222222252222222522222225222222252222222522222cc5
+-- 112:555cc55555cccc555ccddcc55cd55dc55cd55dc55cd55dc55cd55dc55cd55dc5
 -- 116:555c2222555ccc2255cccccc5ccc5ccc55555ccc55555ccc55555cc555555dd5
 -- 117:222225552222cc552225cc55c2c55c55ccc55555ccc555555cc555555dd55555
 -- 118:555c2222555ccc2255cccccc5ccc5ccc55555ccc55555ccc55555dd555555555
