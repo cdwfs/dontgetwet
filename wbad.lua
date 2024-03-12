@@ -111,6 +111,22 @@ map=function(x,y,w,h,sx,sy,colorkey,scale,remap)
           scale or 1, remap)
 end
 
+-- gradually approach a target
+-- c/o https://lisyarus.github.io/blog/programming/2023/02/21/exponential-smoothing.html
+-- - x is the current value
+-- - target is the target value
+-- - speed is some measure of how quickly
+--   x should approach target over time.
+--   Formally, 1/speed is the time it
+--   takes for the value to become
+--   closer to target by a factor
+--   of e=2.71828...
+function approach(x,target,speed)
+ local s=speed or 1
+ local dt=1
+ return x+(target-x)*(1-math.exp(-s*dt))
+end
+
 function clamp(x,low,hi)
  return max(low,min(hi,x))
 end
@@ -505,6 +521,9 @@ function cb_update(_ENV)
     p.px=p.px+s
    end
   end
+  -- Update player's camera focus.
+  p.focusx=approach(p.focusx,p.px,.2)
+  p.focusy=approach(p.focusy,p.py,.2)
   -- Update player's facing direction,
   -- if input was pressed.
   local dir_lut={[0]=7,0,1,6,-1,2,5,4,3}
