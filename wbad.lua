@@ -30,6 +30,64 @@ function obj(t)
  return setmetatable(t,{__index=_ENV})
 end
 
+-- pico8 compatibility aliases
+-- https://github.com/neilpopham/tic80/blob/master/projects/gunslugs/pico8.lua
+add=table.insert
+sqrt=math.sqrt
+abs=math.abs
+min=math.min
+max=math.max
+flr=math.floor
+ceil=math.ceil
+function sub(str,i,j) return str:sub(i,j) end
+function mid(a,b,c) t={a,b,c} table.sort(t) return t[2] end
+function rnd(a) a=a or 1 return math.random()*a end
+function cos(x) return math.cos((x or 0)*(math.pi*2)) end
+function sin(x) return math.sin(-(x or 0)*(math.pi*2)) end
+function atan2(x,y) return (0.75 + math.atan2(x,y) / (math.pi * 2)) % 1.0 end
+function sgn(a) if a>=0 then return 1 end return -1 end
+function sget(x,y)
+ x,y=flr(x),flr(y)
+ local addr=0x8000+64*(flr(x/8)+flr(y/8)*16)
+  return peek4(addr+(y%8)*8+x%8)
+end
+function del(t,a)
+ for i,v in ipairs(t) do
+  if v==a then
+   local r=v
+   t[i]=t[#t]
+   t[#t]=nil
+   return r
+  end
+ end
+end
+function pal(c0,c1,type)
+ c0=c0 or -1
+ c1=c1 or -1
+ type=type or 0
+ if c0<0 and c1<0 then
+  if type==0 then
+   for i=0,15 do
+    poke4(0x7FE0+i,i)
+   end
+  end
+ else
+  c0=flr(c0%16)
+  if c1<0 then
+   c1=c0
+  end
+  c1=flr(c1%16)
+  if type==0 then
+   poke4(0x7FE0+c0,c1)
+  else
+   local stri
+   for i=0,5 do
+    stri=#__p8_pal-(c1+1)*6+i
+    poke4(0x3FC0*2+#__p8_pal-(c0+1)*6+i,tonumber(__p8_pal:sub(stri,stri),16))
+   end
+  end
+ end
+end
 function clamp(x,low,hi)
  return max(low,min(hi,x))
 end
@@ -365,12 +423,12 @@ function cb_init_players(cb)
   p.fx,p.fy=table.unpack(spawns[pid])
   -- todo: use fx,fy for movement
   -- and round afterwards
-  p.px=math.floor(p.fx+0.5)
-  p.py=math.floor(p.fy+0.5)
+  p.px=flr(p.fx+0.5)
+  p.py=flr(p.fy+0.5)
   local pclip=cb.clips[pid]
   p.cx=pclip[1]+pclip[3]/2
   p.cy=pclip[2]+pclip[4]/2
-  table.insert(cb.players,p)
+  add(cb.players,p)
  end
 end
 
