@@ -88,6 +88,29 @@ function pal(c0,c1,type)
   end
  end
 end
+-- pico8-like camera() feature, plus
+-- overloaded draw calls that support.
+camera_x,camera_y=0,0
+function camera(x,y)
+ camera_x,camera_y=x or 0,y or 0
+end
+tic80spr=spr
+spr=function(id,x,y,colorkey,scale,flip,rotate,w,h)
+ tic80spr(id, x-camera_x, y-camera_y,
+          colorkey or -1, scale or 1,
+          flip or 0, rotate or 0,
+          w or 1, h or 1)
+end
+tic80map=map
+map=function(x,y,w,h,sx,sy,colorkey,scale,remap)
+ tic80map(x or 0, y or 0,
+          w or 30, h or 17,
+          (sx or 0)-camera_x,
+          (sy or 0)-camera_y,
+          colorkey or -1,
+          scale or 1, remap)
+end
+
 function clamp(x,low,hi)
  return max(low,min(hi,x))
 end
@@ -310,6 +333,7 @@ end
 mm={}
 
 function menu_enter()
+ camera(0,0)
  cls(0)
  music(MUS_MENU)
  mm=obj({
@@ -352,6 +376,7 @@ end
 cb={}
 
 function cb_enter(args)
+ camera(0,0)
  cb=obj({
   update=cb_update,
   draw=cb_draw,
@@ -394,9 +419,17 @@ function cb_create_player(pid)
     movement in each axis: -1,0,1
     (later scaled by speed)
   - cx,cy are the pixel offsets to the
-    current player's viewport. They
-    must be added to everything drawn
-    in a player's view.
+    center of the current player's
+    viewport. These are computed once at
+    startup and are constant for each
+    player thereafter.
+  - focusx,focusy is the world-space
+    position that should be drawn at
+    the center of the player's viewport.
+  - The final screen-space coordinates
+    for an object at world-space wx,wy
+    for a given player are:
+    cx-focusx+wx,cy-focusy+wy
   ]]
   fx=0,
   fy=0,
@@ -406,6 +439,8 @@ function cb_create_player(pid)
   dy=0,
   cx=0,
   cy=0,
+  focusx=0,
+  focusy=0,
   color=pid_colors[pid],
   pid=pid,
   dir=0, -- 0-7: 0=N, 1=NE, 2=E, etc.
@@ -486,17 +521,16 @@ function cb_draw(_ENV)
  for pid,p in ipairs(players) do
   local pclip=clips[pid]
   clip(table.unpack(pclip))
+  camera(-(p.cx-p.focusx),
+         -(p.cy-p.focusy))
   -- draw map
-  map(0,0,30,17,p.cx-p.px,p.cy-p.py)
-  -- draw the player. TODO: draw all visible players.
-  draw_player(p,p.cx,p.cy)
+  map(0,0,30,17,0,0)
+  -- draw the players
   for _,p2 in ipairs(players) do -- draw corpses
-   if p2.dead and p2~=p then
-    draw_player(p2,
-     p.cx+p2.px-p.px,
-     p.cy+p2.py-p.py)
-   end
+   draw_player(p2)
   end
+  -- restore screen-space camera
+  camera(0,0)
   -- draw "game over" message for eliminated players
   if p.dead then
    rect(p.cx-38,p.cy-20,75,9,0)
@@ -510,7 +544,7 @@ function cb_draw(_ENV)
  end
 end
 
-function draw_player(player,cx,cy)
+function draw_player(player)
  local p=player
  local d=p.dir
  local sid=SID_PLAYER
@@ -534,7 +568,7 @@ function draw_player(player,cx,cy)
  -- draw player
  local prev=peek4(2*0x03FF0+2)
  poke4(2*0x03FF0+2,p.color)
- spr(sid,cx,cy-8,5,1,flip,0,1,2)
+ spr(sid,p.px,p.py-8,5,1,flip,0,1,2)
  poke4(2*0x03FF0+2,prev)
 end
 
