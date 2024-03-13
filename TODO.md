@@ -6,14 +6,13 @@ TODO:
   - draw differently in bushes
 - Water balloons
   - implement windup
-  - implement throwing
   - implement balloons hitting players
+  - implement splash damage
 - recharge stations
   - implement health bars and ammo counters
   - implement recharges
   - implement pings when players recharge
 - helpers
-  - 2d vector math type
   - formalize mode:leave() method
   - bring over the fade() helper function, if needed
   - vararg print() helpers
@@ -25,3 +24,7 @@ DONE:
 * Implement pal() helper
 * Players are visible by default in other viewports
 * change player size to 8x16
+* replace complex dir field with dirx,diry. Rename existing dx,dy to movex,movey or vx,vy.
+* implement throwing, spawning/despawning, drawing balloons
+* implement balloons hitting terrain
+* 2d vector math type
