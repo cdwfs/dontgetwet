@@ -471,44 +471,38 @@ function cb_create_player(pid)
   notes on player coordinates:
   - positions are for the player's
     upper-left corner
-  - fx,fy are raw floating-point pos,
+  - fpos is raw floating-point pos,
     which should only be used for motion.
-  - px,py are fx,fy rounded to the nearest
+  - pos is fpos rounded to the nearest
     pixel (always integers)
-  - vx,vy are the player's current raw
+  - move is the player's current raw
     movement in each axis: -1,0,1
     (later scaled by speed). If no dpad input
     is pressed, they will be zero.
-  - dirx,diry are the player's current
+  - dir is the player's current
     facing direction -- the last direction
     they moved. This is used for throwing
     balloons and choosing a sprite when
     not in motion.
-  - cx,cy are the pixel offsets to the
+  - vpcenter are the pixel offsets to the
     center of the current player's
     viewport. These are computed once at
     startup and are constant for each
     player thereafter.
-  - focusx,focusy is the world-space
+  - focus is the world-space
     position that should be drawn at
     the center of the player's viewport.
   - The final screen-space coordinates
-    for an object at world-space wx,wy
+    for an object at world-space pos wp
     for a given player are:
-    cx-focusx+wx,cy-focusy+wy
+    vpcenter-focus+wp
   ]]
-  fx=0,
-  fy=0,
-  px=0,
-  py=0,
-  vx=0,
-  vy=0,
-  dirx=0,
-  diry=1,
-  cx=0,
-  cy=0,
-  focusx=0,
-  focusy=0,
+  fpos=v2(0,0),
+  pos=v2(0,0),
+  move=v2(0,0),
+  dir=v2(0,0),
+  vpcenter=v2(0,0),
+  focus=v2(0,0),
   color=pid_colors[pid],
   pid=pid,
   speed=1, -- how far to move in current dir per frame
@@ -517,19 +511,19 @@ function cb_create_player(pid)
 end
 function cb_init_players(cb)
  local spawns={
-  {16,16}, {16,64},
-  {40,30}, {80,60},
+  v2(16,16), v2(16,64),
+  v2(40,30), v2(80,60),
  }
  for pid=1,cb.all_player_count do
   local p=cb_create_player(pid)
-  p.fx,p.fy=table.unpack(spawns[pid])
+  p.fpos=v2cpy(spawns[pid])
   -- todo: use fx,fy for movement
   -- and round afterwards
-  p.px=flr(p.fx+0.5)
-  p.py=flr(p.fy+0.5)
+  p.pos=v2flr(v2add(p.fpos,v2(0.5,0.5)))
   local pclip=cb.clips[pid]
-  p.cx=pclip[1]+pclip[3]/2
-  p.cy=pclip[2]+pclip[4]/2
+  p.vpcenter=v2(
+   pclip[1]+pclip[3]/2,
+   pclip[2]+pclip[4]/2)
   add(cb.players,p)
  end
 end
@@ -546,49 +540,46 @@ function cb_update(_ENV)
  end
  for _,p in ipairs(players) do
   local pb0=8*(p.pid-1)
-  p.vy=(btn(pb0+0) and -1 or 0)+(btn(pb0+1) and 1 or 0)
-  p.vx=(btn(pb0+2) and -1 or 0)+(btn(pb0+3) and 1 or 0)
+  p.move.y=(btn(pb0+0) and -1 or 0)+(btn(pb0+1) and 1 or 0)
+  p.move.x=(btn(pb0+2) and -1 or 0)+(btn(pb0+3) and 1 or 0)
+  --p.speed=btn(pb0+4) and 2 or 1
   -- TODO: walk one pixel at a time
-  p.speed=btn(pb0+4) and 2 or 1
   local s=p.speed
-  if p.vy<0 then -- up
-   if is_walkable(p.px,p.py-1)
-   and is_walkable(p.px+7,p.py-1) then
-    p.py=p.py-s
+  if p.move.y<0 then -- up
+   if  is_walkable(p.pos.x,  p.pos.y-1)
+   and is_walkable(p.pos.x+7,p.pos.y-1) then
+    p.pos.y=p.pos.y-s
    end
-  elseif p.vy>0 then -- down
-   if is_walkable(p.px,p.py+1+7)
-   and is_walkable(p.px+7,p.py+1+7) then
-    p.py=p.py+s
-   end
-  end
-  if p.vx<0 then -- left
-   if is_walkable(p.px-1,p.py)
-   and is_walkable(p.px-1,p.py+7) then
-    p.px=p.px-s
-   end
-  elseif p.vx>0 then -- right
-   if is_walkable(p.px+1+7,p.py)
-   and is_walkable(p.px+1+7,p.py+7) then
-    p.px=p.px+s
+  elseif p.move.y>0 then -- down
+   if  is_walkable(p.pos.x,  p.pos.y+1+7)
+   and is_walkable(p.pos.x+7,p.pos.y+1+7) then
+    p.pos.y=p.pos.y+s
    end
   end
-  if p.vx~=0 or p.vy~=0 then
-   p.dirx=p.vx
-   p.diry=p.vy
+  if p.move.x<0 then -- left
+   if  is_walkable(p.pos.x-1,p.pos.y)
+   and is_walkable(p.pos.x-1,p.pos.y+7) then
+    p.pos.x=p.pos.x-s
+   end
+  elseif p.move.x>0 then -- right
+   if  is_walkable(p.pos.x+1+7,p.pos.y)
+   and is_walkable(p.pos.x+1+7,p.pos.y+7) then
+    p.pos.x=p.pos.x+s
+   end
+  end
+  if p.move.x~=0 or p.move.y~=0 then
+   p.dir=v2cpy(p.move)
   end
   -- Update player's camera focus.
-  p.focusx=approach(p.focusx,p.px,.2)
-  p.focusy=approach(p.focusy,p.py,.2)
+  p.focus.x=approach(p.focus.x,p.pos.x,.2)
+  p.focus.y=approach(p.focus.y,p.pos.y,.2)
   -- update balloons
   local balloons2={}
   for _,b in ipairs(balloons) do
    b.t=b.t+1
    if b.t<=b.t1 then
-    local tt = b.t / b.t1
-    b.x=b.x0+(b.x1-b.x0)*tt
-    b.y=b.y0+(b.y1-b.y0)*tt
-    if is_walkable(b.x,b.y) then
+    b.pos=v2lerp(b.pos0,b.pos1,b.t/b.t1)
+    if is_walkable(b.pos.x,b.pos.y) then
      add(balloons2,b)
     end
    end
@@ -597,12 +588,9 @@ function cb_update(_ENV)
   -- handle spawning new balloons
   if btnp(pb0+5) then
    add(balloons,{
-    x0=p.px,
-    y0=p.py,
-    x=p.px,
-    y=p.py,
-    x1=p.px+p.dirx*40,
-    y1=p.py+p.diry*40,
+    pos0=v2cpy(p.pos),
+    pos=v2cpy(p.pos),
+    pos1=v2add(p.pos,v2scl(p.dir,40)),
     t=0,
     t1=40*1,
     pid=p.pid,
@@ -619,8 +607,8 @@ function cb_draw(_ENV)
  for pid,p in ipairs(players) do
   local pclip=clips[pid]
   clip(table.unpack(pclip))
-  camera(-(p.cx-p.focusx),
-         -(p.cy-p.focusy))
+  camera(-(p.vpcenter.x-p.focus.x),
+         -(p.vpcenter.y-p.focus.y))
   -- draw map
   map(0,0,30,17,0,0)
   -- draw the players
@@ -629,19 +617,17 @@ function cb_draw(_ENV)
   end
   -- draw the balloons
   for _,b in ipairs(balloons) do
-   circ(b.x,b.y,2,b.color)
+   circ(b.pos.x,b.pos.y,2,b.color)
   end
   -- restore screen-space camera
   camera(0,0)
   -- draw "game over" message for eliminated players
   if p.dead then
-   rect(p.cx-38,p.cy-20,75,9,0)
-   rectb(p.cx-38,p.cy-20,75,9,p.color)
-   local w=print("KILLED BY PX",p.cx-36,p.cy-18,p.color,true)
+   rect(p.vpcenter.x-38,p.vpcenter.y-20,75,9,0)
+   rectb(p.vpcenter.x-38,p.vpcenter.y-20,75,9,p.color)
+   local w=print("KILLED BY PX",p.vpcenter.x-36,p.vpcenter.y-18,p.color,true)
   end
   -- draw border.
-  -- TODO: perhaps cx,cy should be the inside of this
-  -- border?
   rectb(pclip[1],pclip[2],pclip[3],pclip[4],p.color)
  end
 end
@@ -651,24 +637,24 @@ function draw_player(player)
  local sid=SID_PLAYER
  local flip=0
  --[[
- if p.vy<0 then -- up
+ if p.move.y<0 then -- up
   sid=sid+64
- elseif p.vx>0 then -- right
- elseif p.vy>0 then -- down
+ elseif p.move.x>0 then -- right
+ elseif p.move.y>0 then -- down
   sid=sid+32
- elseif p.vx<0 then -- left
+ elseif p.move.x<0 then -- left
   flip=1
  end
  -- animate if the player is alive and moving.
  if not p.dead
- and (p.vx~=0 or p.vy~=0) then
+ and (p.move.x~=0 or p.move.y~=0) then
   sid=sid+2+2*((mode_frames//4)%2)
  end
  ]]
  -- draw player
  local prev=peek4(2*0x03FF0+2)
  poke4(2*0x03FF0+2,p.color)
- spr(sid,p.px,p.py-8,5,1,flip,0,1,2)
+ spr(sid,p.pos.x,p.pos.y-8,5,1,flip,0,1,2)
  poke4(2*0x03FF0+2,prev)
 end
 
