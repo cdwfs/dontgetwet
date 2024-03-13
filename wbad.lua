@@ -114,6 +114,45 @@ tic80circ=circ
 circ=function(x,y,radius,color)
  tic80circ(x-camera_x,y-camera_y,radius,color)
 end
+-- tiny vector2 library
+-- adapted from vector.p8 (https://www.lexaloffle.com/bbs/?tid=50410)
+function v2(x,y) return {x=x or 0,y=y or 0} end
+function v2polar(l,a) return v2(l*sin(a),l*cos(a)) end
+function v2rnd()      return v2polar(1,rnd()) end
+function v2cpy(v)     return v2(v.x,v.y) end
+function v2unpck(v)   return v.x,v.y end
+function v2arr(v)     return {v2unpck(v)} end
+function v2tostr(v,d) return "["..v.x..", "..v.y.."]" end
+function v2isvec(v)   return type(v)=="table" and type(v.x)=="number" and type(v.y)=="number" end
+function v2eq(a,b)    return a.x==b.x and a.y==b.y end
+function v2add(a,b) return v2( a.x+b.x,  a.y+b.y) end
+function v2sub(a,b) return v2( a.x-b.x,  a.y-b.y) end
+function v2scl(v,n) return v2( v.x*n,    v.y*n) end
+v2mul=v2scl
+function v2div(v,n) return v2( v.x/n,    v.y/n) end
+function v2neg(v)   return v2(-v.x,     -v.y) end
+function v2dot(a,b)   return a.x*b.x+a.y*b.y end
+function v2magsq(v)   return v2dot(v,v)          end
+function v2mag(v)     return sqrt(v2magsq(v))    end
+function v2dstsq(a,b) return v2magsq(v2sub(b,a)) end
+function v2dst(a,b)   return sqrt(v2dstsq(a,b))  end
+function v2norm(v)    return v2div(v,v2mag(v))   end
+function v2perp(v)    return v2(v.y, -v.x)   end
+function v2sprj(a,b)  return v2dot(a,v2norm(b))  end
+function v2proj(a,b)  return v2scl(v2norm(b),v2sprj(a,b)) end
+function v2rot(v,t)    local s,c=sin(v2ang(v)-t),cos(v2ang(v)-t) return v2(v.x*c+v.y*s, -(s*v.x)+c*v.y) end
+function v2ang(v)      return atan2(v.x,v.y)    end
+function v2atwds(a,b)  return v2ang(v2sub(b,a)) end
+function v2lerp(a,b,t) return v2(a.x+(b.x-a.x)*t, a.y+(b.y-a.y)*t) end
+function v2flr(v)      return v2(flr(v.x),flr(v.y)) end
+v2right=v2( 1, 0)
+v2left =v2(-1, 0)
+v2down =v2( 0, 1)
+v2up   =v2( 0,-1)
+v2above=v2cpy(v2down)
+v2below=v2cpy(v2up  )
+v2zero=v2()
+v2one =v2(1,1)
 
 -- gradually approach a target
 -- c/o https://lisyarus.github.io/blog/programming/2023/02/21/exponential-smoothing.html
