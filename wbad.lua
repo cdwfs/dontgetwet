@@ -110,6 +110,10 @@ map=function(x,y,w,h,sx,sy,colorkey,scale,remap)
           colorkey or -1,
           scale or 1, remap)
 end
+tic80circ=circ
+circ=function(x,y,radius,color)
+ tic80circ(x-camera_x,y-camera_y,radius,color)
+end
 
 -- gradually approach a target
 -- c/o https://lisyarus.github.io/blog/programming/2023/02/21/exponential-smoothing.html
@@ -400,6 +404,7 @@ function cb_enter(args)
   all_player_count=args.player_count,
   players={}, -- see cb_init_players()
   live_player_count=args.player_count,
+  balloons={},
  })
  -- adjust clip rects based on player count
  local pid_clips={
@@ -431,9 +436,15 @@ function cb_create_player(pid)
     which should only be used for motion.
   - px,py are fx,fy rounded to the nearest
     pixel (always integers)
-  - dx,dy are the player's current raw
+  - vx,vy are the player's current raw
     movement in each axis: -1,0,1
-    (later scaled by speed)
+    (later scaled by speed). If no dpad input
+    is pressed, they will be zero.
+  - dirx,diry are the player's current
+    facing direction -- the last direction
+    they moved. This is used for throwing
+    balloons and choosing a sprite when
+    not in motion.
   - cx,cy are the pixel offsets to the
     center of the current player's
     viewport. These are computed once at
@@ -451,15 +462,16 @@ function cb_create_player(pid)
   fy=0,
   px=0,
   py=0,
-  dx=0,
-  dy=0,
+  vx=0,
+  vy=0,
+  dirx=0,
+  diry=1,
   cx=0,
   cy=0,
   focusx=0,
   focusy=0,
   color=pid_colors[pid],
   pid=pid,
-  dir=0, -- 0-7: 0=N, 1=NE, 2=E, etc.
   speed=1, -- how far to move in current dir per frame
   dead=false,
  }
@@ -495,41 +507,69 @@ function cb_update(_ENV)
  end
  for _,p in ipairs(players) do
   local pb0=8*(p.pid-1)
-  p.dy=(btn(pb0+0) and -1 or 0)+(btn(pb0+1) and 1 or 0)
-  p.dx=(btn(pb0+2) and -1 or 0)+(btn(pb0+3) and 1 or 0)
+  p.vy=(btn(pb0+0) and -1 or 0)+(btn(pb0+1) and 1 or 0)
+  p.vx=(btn(pb0+2) and -1 or 0)+(btn(pb0+3) and 1 or 0)
   -- TODO: walk one pixel at a time
+  p.speed=btn(pb0+4) and 2 or 1
   local s=p.speed
-  if p.dy<0 then -- up
+  if p.vy<0 then -- up
    if is_walkable(p.px,p.py-1)
    and is_walkable(p.px+7,p.py-1) then
     p.py=p.py-s
    end
-  elseif p.dy>0 then -- down
+  elseif p.vy>0 then -- down
    if is_walkable(p.px,p.py+1+7)
    and is_walkable(p.px+7,p.py+1+7) then
     p.py=p.py+s
    end
   end
-  if p.dx<0 then -- left
+  if p.vx<0 then -- left
    if is_walkable(p.px-1,p.py)
    and is_walkable(p.px-1,p.py+7) then
     p.px=p.px-s
    end
-  elseif p.dx>0 then -- right
+  elseif p.vx>0 then -- right
    if is_walkable(p.px+1+7,p.py)
    and is_walkable(p.px+1+7,p.py+7) then
     p.px=p.px+s
    end
   end
+  if p.vx~=0 or p.vy~=0 then
+   p.dirx=p.vx
+   p.diry=p.vy
+  end
   -- Update player's camera focus.
   p.focusx=approach(p.focusx,p.px,.2)
   p.focusy=approach(p.focusy,p.py,.2)
-  -- Update player's facing direction,
-  -- if input was pressed.
-  local dir_lut={[0]=7,0,1,6,-1,2,5,4,3}
-  local dir=dir_lut[3*(p.dy+1)+(p.dx+1)]
-  if dir>=0 then p.dir=dir end
-  ::end_player_update::
+  -- update balloons
+  local balloons2={}
+  for _,b in ipairs(balloons) do
+   b.t=b.t+1
+   if b.t<=b.t1 then
+    local tt = b.t / b.t1
+    b.x=b.x0+(b.x1-b.x0)*tt
+    b.y=b.y0+(b.y1-b.y0)*tt
+    if is_walkable(b.x,b.y) then
+     add(balloons2,b)
+    end
+   end
+  end
+  balloons=balloons2
+  -- handle spawning new balloons
+  if btnp(pb0+5) then
+   add(balloons,{
+    x0=p.px,
+    y0=p.py,
+    x=p.px,
+    y=p.py,
+    x1=p.px+p.dirx*40,
+    y1=p.py+p.diry*40,
+    t=0,
+    t1=40*1,
+    pid=p.pid,
+    color=p.color,
+   })
+  end
  end
 end
 
@@ -548,6 +588,10 @@ function cb_draw(_ENV)
   for _,p2 in ipairs(players) do -- draw corpses
    draw_player(p2)
   end
+  -- draw the balloons
+  for _,b in ipairs(balloons) do
+   circ(b.x,b.y,2,b.color)
+  end
   -- restore screen-space camera
   camera(0,0)
   -- draw "game over" message for eliminated players
@@ -565,22 +609,20 @@ end
 
 function draw_player(player)
  local p=player
- local d=p.dir
  local sid=SID_PLAYER
  local flip=0
  --[[
- -- dirs are 0-7: 0=N, 1=NE, 2=E etc.
- if d==0 then -- up
+ if p.vy<0 then -- up
   sid=sid+64
- elseif d==1 or d==2 or d==3 then -- right
- elseif d==4 then -- down
+ elseif p.vx>0 then -- right
+ elseif p.vy>0 then -- down
   sid=sid+32
- elseif d==5 or d==6 or d==7 then -- left
+ elseif p.vx<0 then -- left
   flip=1
  end
  -- animate if the player is alive and moving.
  if not p.dead
- and (p.dx~=0 or p.dy~=0) then
+ and (p.vx~=0 or p.vy~=0) then
   sid=sid+2+2*((mode_frames//4)%2)
  end
  ]]
