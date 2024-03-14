@@ -12,7 +12,8 @@
 ------ GLOBALS
 
 -- constants
-K_FOO=0
+K_MAX_HEALTH=100
+K_MAX_AMMO=5
 -- sounds
 SFX_FOO=0
 -- music patterns
@@ -506,6 +507,8 @@ function cb_create_player(pid)
   color=pid_colors[pid],
   pid=pid,
   speed=1, -- how far to move in current dir per frame
+  health=K_MAX_HEALTH,
+  ammo=K_MAX_AMMO,
   dead=false,
  }
 end
@@ -560,7 +563,7 @@ function cb_update(_ENV)
    and b.pos.x<=p.pos.x+7+b.r
    and b.pos.y<=p.pos.y+7+b.r then
     -- TODO pop balloon
-    -- TODO damage player p
+    p.health=max(0,p.health-25)
     goto end_balloon_update
    end
   end
@@ -606,7 +609,10 @@ function cb_update(_ENV)
   p.focus.x=approach(p.focus.x,p.pos.x,.2)
   p.focus.y=approach(p.focus.y,p.pos.y,.2)
   -- handle spawning new balloons
+  -- TODO: don't throw if they're out
+  -- of ammo
   if btnp(pb0+5) then
+   p.ammo=max(p.ammo-1,0)
    add(balloons,{
     pos0=v2cpy(p.pos),
     pos=v2cpy(p.pos),
@@ -625,8 +631,8 @@ function cb_draw(_ENV)
  clip()
  cls(0)
  -- draw each player's viewport
- for pid,p in ipairs(players) do
-  local pclip=clips[pid]
+ for _,p in ipairs(players) do
+  local pclip=clips[p.pid]
   clip(table.unpack(pclip))
   camera(-(p.vpcenter.x-p.focus.x),
          -(p.vpcenter.y-p.focus.y))
@@ -642,13 +648,20 @@ function cb_draw(_ENV)
   end
   -- restore screen-space camera
   camera(0,0)
+  -- draw player health and ammo bars
+  rectb(pclip[1]+2,pclip[2]+2,32,4,12)
+  rect(pclip[1]+3,pclip[2]+3,30*p.health/K_MAX_HEALTH,2,2)
+  for ib=1,p.ammo do
+   circ(pclip[1]+34+ib*6,pclip[2]+4,2,p.color)
+   circb(pclip[1]+34+ib*6,pclip[2]+4,2,12)
+  end
   -- draw "game over" message for eliminated players
   if p.dead then
    rect(p.vpcenter.x-38,p.vpcenter.y-20,75,9,0)
    rectb(p.vpcenter.x-38,p.vpcenter.y-20,75,9,p.color)
    local w=print("KILLED BY PX",p.vpcenter.x-36,p.vpcenter.y-18,p.color,true)
   end
-  -- draw border.
+  -- draw viewport border.
   rectb(pclip[1],pclip[2],pclip[3],pclip[4],p.color)
  end
 end
