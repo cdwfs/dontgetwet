@@ -572,6 +572,14 @@ function cb_update(_ENV)
   ::end_balloon_update::
  end
  balloons=balloons2
+ -- decrease heath of all players
+ -- and check for death
+ for _,p in ipairs(players) do
+  p.health=max(0,p.health-0.1)
+  if p.health==0 then
+   p.dead=true
+  end
+ end
  -- handle input & move players
  for _,p in ipairs(players) do
   local pb0=8*(p.pid-1)
