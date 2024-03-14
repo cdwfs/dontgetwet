@@ -534,6 +534,18 @@ function cb_leave(_ENV)
 end
 
 function cb_update(_ENV)
+ -- update balloons
+ local balloons2={}
+ for _,b in ipairs(balloons) do
+  b.t=b.t+1
+  if b.t<=b.t1 then
+   b.pos=v2lerp(b.pos0,b.pos1,b.t/b.t1)
+   if is_walkable(b.pos.x,b.pos.y) then
+    add(balloons2,b)
+   end
+  end
+ end
+ balloons=balloons2
  -- handle input & move players
  local function is_walkable(px,py)
   return not fget(mget(px//8,py//8),SF_IMPASSABLE)
@@ -573,18 +585,6 @@ function cb_update(_ENV)
   -- Update player's camera focus.
   p.focus.x=approach(p.focus.x,p.pos.x,.2)
   p.focus.y=approach(p.focus.y,p.pos.y,.2)
-  -- update balloons
-  local balloons2={}
-  for _,b in ipairs(balloons) do
-   b.t=b.t+1
-   if b.t<=b.t1 then
-    b.pos=v2lerp(b.pos0,b.pos1,b.t/b.t1)
-    if is_walkable(b.pos.x,b.pos.y) then
-     add(balloons2,b)
-    end
-   end
-  end
-  balloons=balloons2
   -- handle spawning new balloons
   if btnp(pb0+5) then
    add(balloons,{
