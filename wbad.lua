@@ -533,23 +533,43 @@ function cb_leave(_ENV)
  music()
 end
 
+local function is_walkable(px,py)
+ return not fget(mget(px//8,py//8),SF_IMPASSABLE)
+end
+
 function cb_update(_ENV)
  -- update balloons
  local balloons2={}
  for _,b in ipairs(balloons) do
   b.t=b.t+1
-  if b.t<=b.t1 then
-   b.pos=v2lerp(b.pos0,b.pos1,b.t/b.t1)
-   if is_walkable(b.pos.x,b.pos.y) then
-    add(balloons2,b)
+  if b.t>b.t1 then
+   -- TODO pop balloon
+   goto end_balloon_update
+  end
+  b.pos=v2lerp(b.pos0,b.pos1,b.t/b.t1)
+  -- collide with terrain
+  if not is_walkable(b.pos.x,b.pos.y) then
+   -- TODO pop balloon
+   goto end_balloon_update
+  end
+  -- collide with players
+  for _,p in ipairs(players) do
+   if b.pid~=p.pid
+   and b.pos.x>=p.pos.x-b.r
+   and b.pos.y>=p.pos.y-8-b.r
+   and b.pos.x<=p.pos.x+7+b.r
+   and b.pos.y<=p.pos.y+7+b.r then
+    -- TODO pop balloon
+    -- TODO damage player p
+    goto end_balloon_update
    end
   end
+  -- balloon survives to next frame
+  add(balloons2,b)
+  ::end_balloon_update::
  end
  balloons=balloons2
  -- handle input & move players
- local function is_walkable(px,py)
-  return not fget(mget(px//8,py//8),SF_IMPASSABLE)
- end
  for _,p in ipairs(players) do
   local pb0=8*(p.pid-1)
   p.move.y=(btn(pb0+0) and -1 or 0)+(btn(pb0+1) and 1 or 0)
@@ -595,6 +615,7 @@ function cb_update(_ENV)
     t1=40*1,
     pid=p.pid,
     color=p.color,
+    r=2, -- radius
    })
   end
  end
@@ -617,7 +638,7 @@ function cb_draw(_ENV)
   end
   -- draw the balloons
   for _,b in ipairs(balloons) do
-   circ(b.pos.x,b.pos.y,2,b.color)
+   circ(b.pos.x,b.pos.y,b.r,b.color)
   end
   -- restore screen-space camera
   camera(0,0)
