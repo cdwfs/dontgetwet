@@ -20,6 +20,7 @@ SFX_FOO=0
 MUS_MENU=0
 -- sprite ids
 SID_PLAYER=352
+SID_REFILL=264
 -- sprite flags
 SF_IMPASSABLE=0
 SF_PLAYER=1
@@ -445,6 +446,7 @@ function cb_enter(args)
   players={}, -- see cb_init_players()
   live_player_count=args.player_count,
   balloons={},
+  refills={},
  })
  -- adjust clip rects based on player count
  local pid_clips={
@@ -462,6 +464,10 @@ function cb_enter(args)
  end
  cb.clips=pid_clips
  cb_init_players(cb)
+ -- spawn refill stations
+ add(cb.refills,{
+  pos=v2(10*8,7*8),
+ })
  return cb
 end
 
@@ -633,6 +639,21 @@ function cb_update(_ENV)
    })
   end
  end
+ -- update refill stations
+ for _,r in ipairs(refills) do
+  for _,p in ipairs(players) do
+   if  p.pos.x+7>=r.pos.x
+   and p.pos.x  <=r.pos.x+7
+   and p.pos.y+7>=r.pos.y
+   and p.pos.y  <=r.pos.y+7 then
+    -- TODO: spawn ping
+    -- TODO: reset refill countdown
+    -- TODO: reset refill countdown
+    p.health=K_MAX_HEALTH
+    p.ammo=K_MAX_AMMO
+   end
+  end
+ end
 end
 
 function cb_draw(_ENV)
@@ -653,6 +674,10 @@ function cb_draw(_ENV)
   -- draw the balloons
   for _,b in ipairs(balloons) do
    circ(b.pos.x,b.pos.y,b.r,b.color)
+  end
+  -- draw refill stations
+  for _,r in ipairs(refills) do
+   spr(SID_REFILL,r.pos.x,r.pos.y,0)
   end
   -- restore screen-space camera
   camera(0,0)
@@ -729,6 +754,7 @@ end
 -- 005:00000000c0000000000000000000000000000000000000000000000000000000
 -- 006:000000000000000000000000000000000000000d000000d000000d000000d000
 -- 007:0ccd000000dc00000d0c0000d000000000000000000000000000000000000000
+-- 008:0000000000000000000000000eeeeee0eaabaabeebaabaaecddddddf0cddddf0
 -- 016:000c000000ddd000000c0000000c0000000c0000000c00000012300001020300
 -- 017:000c000000ddd000000c0000000c0000000c0000000c00000034c00003040c00
 -- 018:000c000000ddd000000c0000000c0000000c0000000c00000076500007060500
