@@ -5,12 +5,12 @@ TODO:
   - implement running
   - draw differently in bushes
 - Water balloons
+  * implement balloons hitting players
   - implement windup
-  - implement balloons hitting players
   - implement splash damage
 - recharge stations
-  - implement health bars and ammo counters
-  - implement recharges
+  * implement health bars and ammo counters
+  * implement recharges
   - implement pings when players recharge
 - helpers
   - formalize mode:leave() method
