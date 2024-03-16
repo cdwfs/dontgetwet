@@ -14,6 +14,7 @@
 -- constants
 K_MAX_HEALTH=100
 K_MAX_AMMO=5
+K_REFILL_COOLDOWN=60*10
 -- sounds
 SFX_FOO=0
 -- music patterns
@@ -115,6 +116,10 @@ end
 tic80circ=circ
 circ=function(x,y,radius,color)
  tic80circ(x-camera_x,y-camera_y,radius,color)
+end
+tic80rect=rect
+rect=function(x,y,w,h,color)
+ tic80rect(x-camera_x,y-camera_y,w,h,color)
 end
 -- tiny vector2 library
 -- adapted from vector.p8 (https://www.lexaloffle.com/bbs/?tid=50410)
@@ -515,6 +520,7 @@ function cb_create_player(pid)
   speed=1, -- how far to move in current dir per frame
   health=K_MAX_HEALTH,
   ammo=K_MAX_AMMO,
+  refill_cooldown=0,
   dead=false,
  }
 end
@@ -640,17 +646,18 @@ function cb_update(_ENV)
   end
  end
  -- update refill stations
- for _,r in ipairs(refills) do
-  for _,p in ipairs(players) do
-   if  p.pos.x+7>=r.pos.x
+ for _,p in ipairs(players) do
+  p.refill_cooldown=max(0,p.refill_cooldown-1)
+  for _,r in ipairs(refills) do
+   if p.refill_cooldown==0
+   and p.pos.x+7>=r.pos.x
    and p.pos.x  <=r.pos.x+7
    and p.pos.y+7>=r.pos.y
    and p.pos.y  <=r.pos.y+7 then
     -- TODO: spawn ping
-    -- TODO: reset refill countdown
-    -- TODO: reset refill countdown
     p.health=K_MAX_HEALTH
     p.ammo=K_MAX_AMMO
+    p.refill_cooldown=K_REFILL_COOLDOWN
    end
   end
  end
@@ -678,6 +685,10 @@ function cb_draw(_ENV)
   -- draw refill stations
   for _,r in ipairs(refills) do
    spr(SID_REFILL,r.pos.x,r.pos.y,0)
+   if p.refill_cooldown>0 then
+    local h=8*p.refill_cooldown/K_REFILL_COOLDOWN
+    rect(r.pos.x,r.pos.y+8-h,8,h,10)
+   end
   end
   -- restore screen-space camera
   camera(0,0)
