@@ -127,6 +127,10 @@ tic80rect=rect
 rect=function(x,y,w,h,color)
  tic80rect(x-camera_x,y-camera_y,w,h,color)
 end
+tic80rectb=rectb
+rectb=function(x,y,w,h,color)
+ tic80rectb(x-camera_x,y-camera_y,w,h,color)
+end
 -- tiny vector2 library
 -- adapted from vector.p8 (https://www.lexaloffle.com/bbs/?tid=50410)
 function v2(x,y) return {x=x or 0,y=y or 0} end
