@@ -16,6 +16,7 @@ K_MAX_HEALTH=100
 K_MAX_AMMO=5
 K_MAX_PING_RADIUS=600
 K_REFILL_COOLDOWN=60*5
+K_TRANSP_COLOR=5
 -- sounds
 SFX_FOO=0
 -- music patterns
@@ -731,7 +732,7 @@ function cb_draw(_ENV)
   end
   -- draw refill stations
   for _,r in ipairs(refills) do
-   spr(SID_REFILL,r.pos.x,r.pos.y,0)
+   spr(SID_REFILL,r.pos.x,r.pos.y,K_TRANSP_COLOR)
    if p.refill_cooldown>0 then
     local h=8*p.refill_cooldown/K_REFILL_COOLDOWN
     rect(r.pos.x,r.pos.y+8-h,8,h,5)
