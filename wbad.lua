@@ -665,8 +665,8 @@ function cb_update(_ENV)
    p.anims:to(new_sn)
   end
   -- Update player's camera focus.
-  p.focus.x=approach(p.focus.x,p.pos.x+4,.2)
-  p.focus.y=approach(p.focus.y,p.pos.y+4,.2)
+  p.focus.x=approach(p.focus.x,p.pos.x+4,.2)//1
+  p.focus.y=approach(p.focus.y,p.pos.y+4,.2)//1
   -- handle spawning new balloons
   if btnp(pb0+5) and p.ammo>0 then
    p.ammo=max(p.ammo-1,0)
