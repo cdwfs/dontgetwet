@@ -15,7 +15,7 @@
 K_MAX_HEALTH=100
 K_MAX_AMMO=5
 K_MAX_PING_RADIUS=600
-K_REFILL_COOLDOWN=60*10
+K_REFILL_COOLDOWN=60*5
 -- sounds
 SFX_FOO=0
 -- music patterns
@@ -710,7 +710,7 @@ function cb_draw(_ENV)
    spr(SID_REFILL,r.pos.x,r.pos.y,0)
    if p.refill_cooldown>0 then
     local h=8*p.refill_cooldown/K_REFILL_COOLDOWN
-    rect(r.pos.x,r.pos.y+8-h,8,h,10)
+    rect(r.pos.x,r.pos.y+8-h,8,h,5)
    end
   end
   -- restore screen-space camera
@@ -721,6 +721,33 @@ function cb_draw(_ENV)
   for ib=1,p.ammo do
    circ(pclip[1]+34+ib*6,pclip[2]+4,2,p.color)
    circb(pclip[1]+34+ib*6,pclip[2]+4,2,12)
+  end
+  -- for low-health/ammo players, draw "refill" prompt
+  if p.health<0.3*K_MAX_HEALTH
+  or p.ammo==0 then
+   print("REFILL!",
+         p.vpcenter.x-12,p.vpcenter.y-4,
+         15,true)
+   local pc=p.focus
+   local closest=v2(math.huge,math.huge)
+   local closest_d2=v2dstsq(pc,closest)
+   for _,r in ipairs(refills) do
+    local rc=v2add(r.pos,v2(4,4))
+    local d2=v2dstsq(pc,rc)
+    if d2<closest_d2 then
+     closest=v2cpy(rc)
+     closest_d2=d2
+    end
+   end
+   local closest_d=sqrt(closest_d2)
+   if closest_d>40 then
+    local closest_dir=v2scl(
+     v2norm(v2sub(closest,pc)),
+     min(30,closest_d))
+    circ(p.vpcenter.x+closest_dir.x,
+        p.vpcenter.y+closest_dir.y,
+        1,15)
+   end
   end
   -- draw "game over" message for eliminated players
   if p.dead then
