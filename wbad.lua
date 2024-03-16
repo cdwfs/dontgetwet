@@ -534,7 +534,7 @@ function cb_create_player(pid)
   focus=v2(0,0),
   color=pid_colors[pid],
   pid=pid,
-  speed=1, -- how far to move in current dir per frame
+  speed=0, -- how far to move in current dir per frame
   health=K_MAX_HEALTH,
   ammo=K_MAX_AMMO,
   refill_cooldown=0,
@@ -624,7 +624,9 @@ function cb_update(_ENV)
   local pb0=8*(p.pid-1)
   p.move.y=(btn(pb0+0) and -1 or 0)+(btn(pb0+1) and 1 or 0)
   p.move.x=(btn(pb0+2) and -1 or 0)+(btn(pb0+3) and 1 or 0)
-  --p.speed=btn(pb0+4) and 2 or 1
+  p.speed=(v2eq(p.move,v2zero))
+   and max(0,p.speed-0.1)
+   or min(1,p.speed+0.1)
   -- TODO: walk one pixel at a time
   local s=p.speed
   if p.move.y<0 then -- up
