@@ -804,7 +804,7 @@ function draw_player(player)
  local prev=peek4(2*0x03FF0+4)
  poke4(2*0x03FF0+4,p.color)
  spr(p.anims:nextv(),
-     p.pos.x-3,
+     p.pos.x-4,
      p.pos.y-8,
      K_TRANSP_COLOR,1,p.hflip,0,2,2)
  poke4(2*0x03FF0+4,prev)
