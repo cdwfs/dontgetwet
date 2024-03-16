@@ -632,8 +632,8 @@ function cb_update(_ENV)
    p.dir=v2cpy(p.move)
   end
   -- Update player's camera focus.
-  p.focus.x=approach(p.focus.x,p.pos.x,.2)
-  p.focus.y=approach(p.focus.y,p.pos.y,.2)
+  p.focus.x=approach(p.focus.x,p.pos.x+4,.2)
+  p.focus.y=approach(p.focus.y,p.pos.y+4,.2)
   -- handle spawning new balloons
   -- TODO: don't throw if they're out
   -- of ammo
