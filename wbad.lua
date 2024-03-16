@@ -635,9 +635,7 @@ function cb_update(_ENV)
   p.focus.x=approach(p.focus.x,p.pos.x+4,.2)
   p.focus.y=approach(p.focus.y,p.pos.y+4,.2)
   -- handle spawning new balloons
-  -- TODO: don't throw if they're out
-  -- of ammo
-  if btnp(pb0+5) then
+  if btnp(pb0+5) and p.ammo>0 then
    p.ammo=max(p.ammo-1,0)
    add(balloons,{
     pos0=v2cpy(p.pos),
