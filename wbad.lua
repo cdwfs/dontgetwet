@@ -477,9 +477,15 @@ function cb_enter(args)
  cb.clips=pid_clips
  cb_init_players(cb)
  -- spawn refill stations
- add(cb.refills,{
-  pos=v2(10*8,7*8),
- })
+ -- TODO: parse locations out of map
+ local refill_tiles={
+  v2(10,7),v2(40,30),v2(47,3),v2(9,26),
+ }
+ for _,tp in ipairs(refill_tiles) do
+  add(cb.refills,{
+   pos=v2scl(tp,8),
+  })
+ end
  return cb
 end
 
@@ -541,13 +547,13 @@ function cb_create_player(pid)
  }
 end
 function cb_init_players(cb)
- local spawns={
-  v2(16,16), v2(16,64),
-  v2(40,30), v2(80,60),
+ local spawn_tiles={
+  v2( 3, 4), v2(56,20),
+  v2( 4,30), v2(56, 4),
  }
  for pid=1,cb.all_player_count do
   local p=cb_create_player(pid)
-  p.fpos=v2cpy(spawns[pid])
+  p.fpos=v2scl(v2cpy(spawn_tiles[pid]),8)
   -- todo: use fx,fy for movement
   -- and round afterwards
   p.pos=v2flr(v2add(p.fpos,v2(0.5,0.5)))
@@ -603,7 +609,7 @@ function cb_update(_ENV)
  -- decrease health of all players
  -- and check for death
  for _,p in ipairs(players) do
-  p.health=max(0,p.health-0.1)
+  p.health=max(0,p.health-0.02)
   if p.health==0 then
    p.dead=true
   end
