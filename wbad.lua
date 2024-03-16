@@ -628,25 +628,53 @@ function cb_update(_ENV)
   -- TODO: walk one pixel at a time
   local s=p.speed
   if p.move.y<0 then -- up
-   if  canwalk(p.fpos.x,  p.fpos.y-1)
-   and canwalk(p.fpos.x+7,p.fpos.y-1) then
+   if  canwalk(p.fpos.x+1,p.fpos.y-s)
+   and canwalk(p.fpos.x+6,p.fpos.y-s) then
     p.fpos.y=p.fpos.y-s
+    if p.move.x==0 then
+     if not canwalk(p.fpos.x,p.fpos.y) then
+      p.fpos.x=(p.fpos.x+1)//1
+     elseif not canwalk(p.fpos.x+7,p.fpos.y) then
+      p.fpos.x=(p.fpos.x-1)//1
+     end
+    end
    end
   elseif p.move.y>0 then -- down
-   if  canwalk(p.fpos.x,  p.fpos.y+1+7)
-   and canwalk(p.fpos.x+7,p.fpos.y+1+7) then
+   if  canwalk(p.fpos.x+1,p.fpos.y+7+s)
+   and canwalk(p.fpos.x+6,p.fpos.y+7+s) then
     p.fpos.y=p.fpos.y+s
+    if p.move.x==0 then
+     if not canwalk(p.fpos.x,p.fpos.y+7) then
+      p.fpos.x=(p.fpos.x+1)//1
+     elseif not canwalk(p.fpos.x+7,p.fpos.y+7) then
+      p.fpos.x=(p.fpos.x-1)//1
+     end
+    end
    end
   end
   if p.move.x<0 then -- left
-   if  canwalk(p.fpos.x-1,p.fpos.y)
-   and canwalk(p.fpos.x-1,p.fpos.y+7) then
+   if  canwalk(p.fpos.x-s,p.fpos.y+1)
+   and canwalk(p.fpos.x-s,p.fpos.y+6) then
     p.fpos.x=p.fpos.x-s
+    if p.move.y==0 then
+     if not canwalk(p.fpos.x,p.fpos.y) then
+      p.fpos.y=(p.fpos.y+1)//1
+     elseif not canwalk(p.fpos.x,p.fpos.y+7) then
+      p.fpos.y=(p.fpos.y-1)//1
+     end
+    end
    end
   elseif p.move.x>0 then -- right
-   if  canwalk(p.fpos.x+1+7,p.fpos.y)
-   and canwalk(p.fpos.x+1+7,p.fpos.y+7) then
+   if  canwalk(p.fpos.x+7+s,p.fpos.y+1)
+   and canwalk(p.fpos.x+7+s,p.fpos.y+6) then
     p.fpos.x=p.fpos.x+s
+    if p.move.y==0 then
+     if not canwalk(p.fpos.x+7,p.fpos.y) then
+      p.fpos.y=(p.fpos.y+1)//1
+     elseif not canwalk(p.fpos.x+7,p.fpos.y+7) then
+      p.fpos.y=(p.fpos.y-1)//1
+     end
+    end
    end
   end
   p.pos.x=(p.fpos.x+0.5)//1
