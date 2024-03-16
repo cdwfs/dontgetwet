@@ -14,6 +14,7 @@
 -- constants
 K_MAX_HEALTH=100
 K_MAX_AMMO=5
+K_MAX_PING_RADIUS=600
 K_REFILL_COOLDOWN=60*10
 -- sounds
 SFX_FOO=0
@@ -116,6 +117,10 @@ end
 tic80circ=circ
 circ=function(x,y,radius,color)
  tic80circ(x-camera_x,y-camera_y,radius,color)
+end
+tic80circb=circb
+circb=function(x,y,radius,color)
+ tic80circb(x-camera_x,y-camera_y,radius,color)
 end
 tic80rect=rect
 rect=function(x,y,w,h,color)
@@ -452,6 +457,7 @@ function cb_enter(args)
   live_player_count=args.player_count,
   balloons={},
   refills={},
+  refill_pings={},
  })
  -- adjust clip rects based on player count
  local pid_clips={
@@ -645,6 +651,15 @@ function cb_update(_ENV)
    })
   end
  end
+ -- update refill station pings
+ local refill_pings2={}
+ for _,rp in ipairs(refill_pings) do
+  rp.radius=rp.radius+1
+  if rp.radius<=K_MAX_PING_RADIUS then
+   add(refill_pings2,rp)
+  end
+ end
+ refill_pings=refill_pings2
  -- update refill stations
  for _,p in ipairs(players) do
   p.refill_cooldown=max(0,p.refill_cooldown-1)
@@ -654,10 +669,14 @@ function cb_update(_ENV)
    and p.pos.x  <=r.pos.x+7
    and p.pos.y+7>=r.pos.y
    and p.pos.y  <=r.pos.y+7 then
-    -- TODO: spawn ping
+    -- TODO play sound
     p.health=K_MAX_HEALTH
     p.ammo=K_MAX_AMMO
     p.refill_cooldown=K_REFILL_COOLDOWN
+    add(refill_pings,{
+     pos=v2add(r.pos,v2(4,4)),
+     radius=0,
+    })
    end
   end
  end
@@ -681,6 +700,10 @@ function cb_draw(_ENV)
   -- draw the balloons
   for _,b in ipairs(balloons) do
    circ(b.pos.x,b.pos.y,b.r,b.color)
+  end
+  -- draw refill station pings
+  for _,rp in ipairs(refill_pings) do
+   circb(rp.pos.x,rp.pos.y,rp.radius,rp.radius%16)
   end
   -- draw refill stations
   for _,r in ipairs(refills) do
