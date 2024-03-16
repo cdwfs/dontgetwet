@@ -570,8 +570,9 @@ function cb_leave(_ENV)
  music()
 end
 
-local function is_walkable(px,py)
- return not fget(mget(px//8,py//8),SF_IMPASSABLE)
+local function canwalk(px,py)
+ local t=mget((px+0.5)//8,(py+0.5)//8)
+ return not fget(t,SF_IMPASSABLE)
 end
 
 function cb_update(_ENV)
@@ -585,7 +586,7 @@ function cb_update(_ENV)
   end
   b.pos=v2lerp(b.pos0,b.pos1,b.t/b.t1)
   -- collide with terrain
-  if not is_walkable(b.pos.x,b.pos.y) then
+  if not canwalk(b.pos.x,b.pos.y) then
    -- TODO pop balloon
    goto end_balloon_update
   end
@@ -623,27 +624,29 @@ function cb_update(_ENV)
   -- TODO: walk one pixel at a time
   local s=p.speed
   if p.move.y<0 then -- up
-   if  is_walkable(p.pos.x,  p.pos.y-1)
-   and is_walkable(p.pos.x+7,p.pos.y-1) then
-    p.pos.y=p.pos.y-s
+   if  canwalk(p.fpos.x,  p.fpos.y-1)
+   and canwalk(p.fpos.x+7,p.fpos.y-1) then
+    p.fpos.y=p.fpos.y-s
    end
   elseif p.move.y>0 then -- down
-   if  is_walkable(p.pos.x,  p.pos.y+1+7)
-   and is_walkable(p.pos.x+7,p.pos.y+1+7) then
-    p.pos.y=p.pos.y+s
+   if  canwalk(p.fpos.x,  p.fpos.y+1+7)
+   and canwalk(p.fpos.x+7,p.fpos.y+1+7) then
+    p.fpos.y=p.fpos.y+s
    end
   end
   if p.move.x<0 then -- left
-   if  is_walkable(p.pos.x-1,p.pos.y)
-   and is_walkable(p.pos.x-1,p.pos.y+7) then
-    p.pos.x=p.pos.x-s
+   if  canwalk(p.fpos.x-1,p.fpos.y)
+   and canwalk(p.fpos.x-1,p.fpos.y+7) then
+    p.fpos.x=p.fpos.x-s
    end
   elseif p.move.x>0 then -- right
-   if  is_walkable(p.pos.x+1+7,p.pos.y)
-   and is_walkable(p.pos.x+1+7,p.pos.y+7) then
-    p.pos.x=p.pos.x+s
+   if  canwalk(p.fpos.x+1+7,p.fpos.y)
+   and canwalk(p.fpos.x+1+7,p.fpos.y+7) then
+    p.fpos.x=p.fpos.x+s
    end
   end
+  p.pos.x=(p.fpos.x+0.5)//1
+  p.pos.y=(p.fpos.y+0.5)//1
   -- update facing direction
   if p.move.x~=0 or p.move.y~=0 then
    p.dir=v2cpy(p.move)
