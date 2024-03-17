@@ -19,6 +19,7 @@ K_REFILL_COOLDOWN=60*5
 K_MAX_WINDUP=60
 K_MIN_THROW=20
 K_MAX_THROW=70
+K_SPLASH_DIST=14
 -- palette color indices
 PID_COLORS={2,10,4,12}
 C_WHITE=8
@@ -641,17 +642,29 @@ function cb_update(_ENV)
    and b.pos.x<=p.pos.x+7+b.r
    and b.pos.y<=p.pos.y+7+b.r then
     pop=true
+    -- direct hits do extra damage
     p.health=max(0,p.health-25)
     goto end_balloon_update
    end
   end
   ::end_balloon_update::
   if pop then
+   -- check for nearby players and
+   -- assign splash damage
+   local splash_dist2=K_SPLASH_DIST*K_SPLASH_DIST
+   for _,p in ipairs(players) do
+    local pc=v2add(p.pos,v2(4,4))
+    if b.pid~=p.pid
+    and v2dstsq(pc,b.pos)<splash_dist2 then
+     p.health=max(0,p.health-25)
+    end
+   end
+   local disth=K_SPLASH_DIST/2
    for i=1,50 do
     add(wparts,{
      pos=v2cpy(b.pos),
      vel=v2scl(v2rnd(),0.5+rnd(1)),
-     ttl=15+rnd()*10,
+     ttl=disth+rnd()*K_SPLASH_DIST,
      color=i<10 and PID_COLORS[b.pid]
                  or C_LIGHTBLUE,
      pid=b.pid,
@@ -756,7 +769,7 @@ function cb_update(_ENV)
   -- Update player's camera focus.
   p.focus.x=approach(p.focus.x,p.pos.x+4,.2)//1
   p.focus.y=approach(p.focus.y,p.pos.y+4,.2)//1
-  -- handle spawning new balloons
+  -- handle throwing balloons
   if p.ammo>0 and btn(pb0+5) then
    p.windup=min(K_MAX_WINDUP,p.windup+1)
   elseif not btn(pb0+5)
