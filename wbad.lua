@@ -696,8 +696,8 @@ function cb_update(_ENV)
   p.move.y=(btn(pb0+0) and -1 or 0)+(btn(pb0+1) and 1 or 0)
   p.move.x=(btn(pb0+2) and -1 or 0)+(btn(pb0+3) and 1 or 0)
   p.speed=(v2eq(p.move,v2zero))
-   and max(0,p.speed-0.1)
-   or min(1,p.speed+0.1)
+   and max(p.speed-0.1,0)
+   or  min(p.speed+0.1,0.6)
   -- TODO: walk one pixel at a time
   local s=p.speed
   if p.move.y<0 then -- up
