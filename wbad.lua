@@ -16,6 +16,9 @@ K_MAX_HEALTH=100
 K_MAX_AMMO=5
 K_MAX_PING_RADIUS=600
 K_REFILL_COOLDOWN=60*5
+K_MAX_WINDUP=60
+K_MIN_THROW=20
+K_MAX_THROW=70
 K_TRANSP_COLOR=5
 PID_COLORS={2,10,4,12}
 -- sounds
@@ -202,6 +205,10 @@ end
 
 function clamp(x,low,hi)
  return max(low,min(hi,x))
+end
+
+function lerp(a,b,t)
+ return a+(b-a)*t
 end
 
 -- return pixel x,y for a sprite.
@@ -542,7 +549,7 @@ function cb_create_player(pid)
   fpos=v2(0,0),
   pos=v2(0,0),
   move=v2(0,0),
-  dir=v2(0,0),
+  dir=v2(1,0),
   vpcenter=v2(0,0),
   focus=v2(0,0),
   color=PID_COLORS[pid],
@@ -552,6 +559,7 @@ function cb_create_player(pid)
   ammo=K_MAX_AMMO,
   refill_cooldown=0,
   dead=false,
+  windup=0,
   anims=animgraph({
    idlelr={anim({258},8),"idlelr"},
    idled={anim({290},8),"idled"},
@@ -742,18 +750,25 @@ function cb_update(_ENV)
   p.focus.x=approach(p.focus.x,p.pos.x+4,.2)//1
   p.focus.y=approach(p.focus.y,p.pos.y+4,.2)//1
   -- handle spawning new balloons
-  if btnp(pb0+5) and p.ammo>0 then
+  if p.ammo>0 and btn(pb0+5) then
+   p.windup=min(K_MAX_WINDUP,p.windup+1)
+  elseif not btn(pb0+5)
+  and p.windup>0 then
    p.ammo=max(p.ammo-1,0)
+   local dist=lerp(K_MIN_THROW,
+    K_MAX_THROW,p.windup/K_MAX_WINDUP)
+   local diroff=balloon_origin_offset(p.dir)
    add(balloons,{
-    pos0=v2cpy(p.pos),
-    pos=v2cpy(p.pos),
-    pos1=v2add(p.pos,v2scl(p.dir,40)),
+    pos0=v2add(p.pos,v2(4,4)),
+    pos=v2add(p.pos,v2(4,4)),
+    pos1=v2add(p.pos,v2scl(p.dir,dist)),
     t=0,
     t1=40*1,
     pid=p.pid,
     color=p.color,
     r=2, -- radius
    })
+   p.windup=0
   end
  end
  -- update refill station pings
@@ -809,9 +824,8 @@ function cb_draw(_ENV)
   end
   -- draw balloons
   for _,b in ipairs(balloons) do
-   elli(b.pos.x,b.pos.y,
-    b.r+sin(.03*b.t)/2,b.r+cos(1.5+.04*b.t)/2,
-    b.color)
+   draw_balloon(b.pos.x,b.pos.y,
+    b.r,b.color,b.t,b.t1)
   end
   -- draw refill station pings
   for _,rp in ipairs(refill_pings) do
@@ -872,6 +886,32 @@ function cb_draw(_ENV)
  end
 end
 
+function balloon_origin_offset(dir)
+ if dir.y<0 then
+  return v2(8,-2)
+ elseif dir.y>0 then
+  return v2(0,-2)
+ elseif dir.x<0 then
+  return v2(8,-2)
+ else
+  return v2(0,0)
+ end
+end
+
+function draw_balloon(x,y,r,color,t,t1)
+ local t=t or 0
+ local t1=t1 or 1
+ local yoff=6*sin(-0.5*t/t1)
+ elli(x,y-yoff,
+  1+r+sin(.03*t)/2,
+  1+r+cos(1.5+.04*t)/2,
+  0)
+ elli(x,y-yoff,
+  r+sin(.03*t)/2,
+  r+cos(1.5+.04*t)/2,
+  color)
+end
+
 function draw_player(player)
  local p=player
  -- draw player
@@ -882,6 +922,14 @@ function draw_player(player)
      p.pos.y-8,
      K_TRANSP_COLOR,1,p.hflip,0,2,2)
  poke4(2*0x03FF0+4,prev)
+ -- draw balloon if winding up
+ if p.windup>0 then
+  local diroff=balloon_origin_offset(p.dir)
+  draw_balloon(
+   p.pos.x+diroff.x,
+   p.pos.y+diroff.y,
+   2,p.color)
+ end
 end
 
 -- <TILES>
