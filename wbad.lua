@@ -19,8 +19,14 @@ K_REFILL_COOLDOWN=60*5
 K_MAX_WINDUP=60
 K_MIN_THROW=20
 K_MAX_THROW=70
-K_TRANSP_COLOR=5
+-- palette color indices
 PID_COLORS={2,10,4,12}
+C_WHITE=8
+C_BLACK=0
+C_DARKGREY=3
+C_LIGHTBLUE=13
+C_RED=5
+C_TRANSPARENT=5 -- by default
 -- sounds
 SFX_FOO=0
 -- music patterns
@@ -462,7 +468,7 @@ function menu_update(_ENV)
 end
 
 function menu_draw(_ENV)
- cls(0)
+ cls(C_BLACK)
  spr(32,80,40,0,2,0,0,5,3)
  print("< "..player_count.." PLAYERS >",80,100,12,true)
 end
@@ -646,7 +652,8 @@ function cb_update(_ENV)
      pos=v2cpy(b.pos),
      vel=v2scl(v2rnd(),0.5+rnd(1)),
      ttl=15+rnd()*10,
-     color=i<10 and PID_COLORS[b.pid] or 13,
+     color=i<10 and PID_COLORS[b.pid]
+                 or C_LIGHTBLUE,
      pid=b.pid,
     })
    end
@@ -804,7 +811,7 @@ end
 
 function cb_draw(_ENV)
  clip()
- cls(0)
+ cls(C_BLACK)
  -- draw each player's viewport
  for _,p in ipairs(players) do
   local pclip=clips[p.pid]
@@ -819,7 +826,8 @@ function cb_draw(_ENV)
   end
   -- draw water particles
   for _,wp in ipairs(wparts) do
-   local c=wp.ttl<2 and 3 or wp.color
+   local c=wp.ttl<2 and C_DARKGREY
+                     or wp.color
    pix(wp.pos.x,wp.pos.y,c)
   end
   -- draw balloons
@@ -833,27 +841,29 @@ function cb_draw(_ENV)
   end
   -- draw refill stations
   for _,r in ipairs(refills) do
-   spr(SID_REFILL,r.pos.x,r.pos.y,K_TRANSP_COLOR)
+   spr(SID_REFILL,r.pos.x,r.pos.y,C_TRANSPARENT)
    if p.refill_cooldown>0 then
     local h=8*p.refill_cooldown/K_REFILL_COOLDOWN
-    rect(r.pos.x,r.pos.y+8-h,8,h,5)
+    rect(r.pos.x,r.pos.y+8-h,8,h,C_RED)
    end
   end
   -- restore screen-space camera
   camera(0,0)
   -- draw player health and ammo bars
-  rectb(pclip[1]+2,pclip[2]+2,32,4,12)
-  rect(pclip[1]+3,pclip[2]+3,30*p.health/K_MAX_HEALTH,2,2)
+  rectb(pclip[1]+2,pclip[2]+2,
+        32,4,K_WHITE)
+  rect( pclip[1]+3,pclip[2]+3,
+        30*p.health/K_MAX_HEALTH,2,C_RED)
   for ib=1,p.ammo do
    circ(pclip[1]+34+ib*6,pclip[2]+4,2,p.color)
-   circb(pclip[1]+34+ib*6,pclip[2]+4,2,12)
+   circb(pclip[1]+34+ib*6,pclip[2]+4,2,C_BLACK)
   end
   -- for low-health/ammo players, draw "refill" prompt
   if p.health<0.3*K_MAX_HEALTH
   or p.ammo==0 then
    print("REFILL!",
          p.vpcenter.x-12,p.vpcenter.y-4,
-         15,true)
+         C_WHITE,true)
    local pc=p.focus
    local closest=v2(math.huge,math.huge)
    local closest_d2=v2dstsq(pc,closest)
@@ -872,12 +882,12 @@ function cb_draw(_ENV)
      min(30,closest_d))
     circ(p.vpcenter.x+closest_dir.x,
         p.vpcenter.y+closest_dir.y,
-        1,15)
+        1,C_WHITE)
    end
   end
   -- draw "game over" message for eliminated players
   if p.dead then
-   rect(p.vpcenter.x-38,p.vpcenter.y-20,75,9,0)
+   rect(p.vpcenter.x-38,p.vpcenter.y-20,75,9,C_BLACK)
    rectb(p.vpcenter.x-38,p.vpcenter.y-20,75,9,p.color)
    local w=print("KILLED BY PX",p.vpcenter.x-36,p.vpcenter.y-18,p.color,true)
   end
@@ -905,7 +915,7 @@ function draw_balloon(x,y,r,color,t,t1)
  elli(x,y-yoff,
   1+r+sin(.03*t)/2,
   1+r+cos(1.5+.04*t)/2,
-  0)
+  C_BLACK)
  elli(x,y-yoff,
   r+sin(.03*t)/2,
   r+cos(1.5+.04*t)/2,
@@ -920,7 +930,7 @@ function draw_player(player)
  spr(p.anims:nextv(),
      p.pos.x-4,
      p.pos.y-8,
-     K_TRANSP_COLOR,1,p.hflip,0,2,2)
+     C_TRANSPARENT,1,p.hflip,0,2,2)
  poke4(2*0x03FF0+4,prev)
  -- draw balloon if winding up
  if p.windup>0 then
