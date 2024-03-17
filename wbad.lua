@@ -17,6 +17,7 @@ K_MAX_AMMO=5
 K_MAX_PING_RADIUS=600
 K_REFILL_COOLDOWN=60*5
 K_TRANSP_COLOR=5
+PID_COLORS={2,10,4,12}
 -- sounds
 SFX_FOO=0
 -- music patterns
@@ -130,6 +131,10 @@ end
 tic80rectb=rectb
 rectb=function(x,y,w,h,color)
  tic80rectb(x-camera_x,y-camera_y,w,h,color)
+end
+tic80pix=pix
+pix=function(x,y,color)
+ return tic80pix(x-camera_x,y-camera_y,color)
 end
 -- tiny vector2 library
 -- adapted from vector.p8 (https://www.lexaloffle.com/bbs/?tid=50410)
@@ -462,6 +467,7 @@ function cb_enter(args)
   live_player_count=args.player_count,
   balloons={},
   refills={},
+  wparts={}, -- water particles
   refill_pings={},
  })
  -- adjust clip rects based on player count
@@ -494,7 +500,6 @@ function cb_enter(args)
 end
 
 function cb_create_player(pid)
- local pid_colors={2,10,4,12}
  return {
   --[[
   notes on player coordinates:
@@ -532,7 +537,7 @@ function cb_create_player(pid)
   dir=v2(0,0),
   vpcenter=v2(0,0),
   focus=v2(0,0),
-  color=pid_colors[pid],
+  color=PID_COLORS[pid],
   pid=pid,
   speed=0, -- how far to move in current dir per frame
   health=K_MAX_HEALTH,
@@ -580,18 +585,30 @@ local function canwalk(px,py)
 end
 
 function cb_update(_ENV)
+ -- update water particles
+ local wparts2={}
+ for _,wp in ipairs(wparts) do
+  wp.ttl=wp.ttl-1
+  if wp.ttl>0 then
+   wp.pos=v2add(wp.pos,wp.vel)
+   wp.vel=v2scl(wp.vel,0.9)
+   add(wparts2,wp)
+  end
+ end
+ wparts=wparts2
  -- update balloons
  local balloons2={}
  for _,b in ipairs(balloons) do
+  local pop=false
   b.t=b.t+1
   if b.t>b.t1 then
-   -- TODO pop balloon
+   pop=true
    goto end_balloon_update
   end
   b.pos=v2lerp(b.pos0,b.pos1,b.t/b.t1)
   -- collide with terrain
   if not canwalk(b.pos.x,b.pos.y) then
-   -- TODO pop balloon
+   pop=true
    goto end_balloon_update
   end
   -- collide with players
@@ -601,14 +618,26 @@ function cb_update(_ENV)
    and b.pos.y>=p.pos.y-8-b.r
    and b.pos.x<=p.pos.x+7+b.r
    and b.pos.y<=p.pos.y+7+b.r then
-    -- TODO pop balloon
+    pop=true
     p.health=max(0,p.health-25)
     goto end_balloon_update
    end
   end
-  -- balloon survives to next frame
-  add(balloons2,b)
   ::end_balloon_update::
+  if pop then
+   for i=1,50 do
+    add(wparts,{
+     pos=v2cpy(b.pos),
+     vel=v2scl(v2rnd(),0.5+rnd(1)),
+     ttl=15+rnd()*10,
+     color=i<10 and PID_COLORS[b.pid] or 13,
+     pid=b.pid,
+    })
+   end
+  else
+   -- balloon survives to next frame
+   add(balloons2,b)
+  end
  end
  balloons=balloons2
  -- decrease health of all players
@@ -765,7 +794,12 @@ function cb_draw(_ENV)
   for _,p2 in ipairs(players) do -- draw corpses
    draw_player(p2)
   end
-  -- draw the balloons
+  -- draw water particles
+  for _,wp in ipairs(wparts) do
+   local c=wp.ttl<2 and 3 or wp.color
+   pix(wp.pos.x,wp.pos.y,c)
+  end
+  -- draw balloons
   for _,b in ipairs(balloons) do
    circ(b.pos.x,b.pos.y,b.r,b.color)
   end
