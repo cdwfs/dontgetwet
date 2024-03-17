@@ -19,6 +19,7 @@ K_REFILL_COOLDOWN=60*5
 K_MAX_WINDUP=60
 K_MIN_THROW=20
 K_MAX_THROW=70
+K_BALLOON_RADIUS=2
 K_SPLASH_DIST=14
 -- palette color indices
 PID_COLORS={2,10,4,12}
@@ -125,6 +126,11 @@ map=function(x,y,w,h,sx,sy,colorkey,scale,remap)
           (sy or 0)-camera_y,
           colorkey or -1,
           scale or 1, remap)
+end
+tic80line=line
+line=function(x0,y0,x1,y1,color)
+ tic80line(x0-camera_x,y0-camera_y,
+  x1-camera_x,y1-camera_y,color)
 end
 tic80circ=circ
 circ=function(x,y,radius,color)
@@ -775,18 +781,16 @@ function cb_update(_ENV)
   elseif not btn(pb0+5)
   and p.windup>0 then
    p.ammo=max(p.ammo-1,0)
-   local dist=lerp(K_MIN_THROW,
-    K_MAX_THROW,p.windup/K_MAX_WINDUP)
-   local diroff=balloon_origin_offset(p.dir)
+   local borig=balloon_origin(p.pos,p.dir)
    add(balloons,{
-    pos0=v2add(p.pos,v2(4,4)),
-    pos=v2add(p.pos,v2(4,4)),
-    pos1=v2add(p.pos,v2scl(p.dir,dist)),
+    pos0=v2cpy(borig),
+    pos=v2cpy(borig),
+    pos1=balloon_throw_target(p),
     t=0,
     t1=40*1,
     pid=p.pid,
     color=p.color,
-    r=2, -- radius
+    r=K_BALLOON_RADIUS,
    })
    p.windup=0
   end
@@ -909,15 +913,26 @@ function cb_draw(_ENV)
  end
 end
 
-function balloon_origin_offset(dir)
+function balloon_throw_target(p)
+ local dist=lerp(K_MIN_THROW,K_MAX_THROW,
+             p.windup/K_MAX_WINDUP)
+ return v2add(v2add(p.pos,v2(4,4)),
+              v2scl(p.dir,dist))
+end
+
+function balloon_origin(pos,dir)
+ -- compute position where balloon
+ -- is thrown from, given player pos/dir.
+ -- includes the 4,4 offset to
+ -- middle of player tile
  if dir.y<0 then
-  return v2(8,-2)
+  return v2add(pos,v2(7,4)) -- up
  elseif dir.y>0 then
-  return v2(0,-2)
+  return v2add(pos,v2(0,4)) -- down
  elseif dir.x<0 then
-  return v2(8,-2)
+  return v2add(pos,v2(7,2)) -- left
  else
-  return v2(0,0)
+  return v2add(pos,v2(0,2)) -- right
  end
 end
 
@@ -945,13 +960,17 @@ function draw_player(player)
      p.pos.y-8,
      C_TRANSPARENT,1,p.hflip,0,2,2)
  poke4(2*0x03FF0+4,prev)
- -- draw balloon if winding up
+ -- draw balloon and reticle
+ -- if winding up
  if p.windup>0 then
-  local diroff=balloon_origin_offset(p.dir)
-  draw_balloon(
-   p.pos.x+diroff.x,
-   p.pos.y+diroff.y,
-   2,p.color)
+  local borig=balloon_origin(p.pos,p.dir)
+  draw_balloon(borig.x,borig.y,
+   K_BALLOON_RADIUS,p.color)
+  local target=balloon_throw_target(p)
+  line(target.x-1,target.y,
+       target.x+1,target.y,C_WHITE)
+  line(target.x,target.y-1,
+       target.x,target.y+1,C_WHITE)
  end
 end
 
