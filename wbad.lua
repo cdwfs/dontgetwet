@@ -940,14 +940,13 @@ function draw_balloon(x,y,r,color,t,t1)
  local t=t or 0
  local t1=t1 or 1
  local yoff=6*sin(-0.5*t/t1)
- elli(x,y-yoff,
-  1+r+sin(.03*t)/2,
-  1+r+cos(1.5+.04*t)/2,
-  C_BLACK)
- elli(x,y-yoff,
-  r+sin(.03*t)/2,
-  r+cos(1.5+.04*t)/2,
-  color)
+ local rx,ry=r+sin(.03*t)/2,
+             r+cos(1.5+.04*t)/2
+ if t>0 then -- drop shadow
+  elli(x,y+2,rx,2,C_DARKGREY)
+ end
+ elli(x,y-yoff,rx+1,ry+1,C_BLACK)
+ elli(x,y-yoff,rx,ry,color)
 end
 
 function draw_player(player)
