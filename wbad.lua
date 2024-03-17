@@ -136,6 +136,14 @@ tic80pix=pix
 pix=function(x,y,color)
  return tic80pix(x-camera_x,y-camera_y,color)
 end
+tic80elli=elli
+elli=function(x,y,a,b,color)
+ tic80elli(x-camera_x,y-camera_y,a,b,color)
+end
+tic80ellib=ellib
+ellib=function(x,y,a,b,color)
+ tic80ellib(x-camera_x,y-camera_y,a,b,color)
+end
 -- tiny vector2 library
 -- adapted from vector.p8 (https://www.lexaloffle.com/bbs/?tid=50410)
 function v2(x,y) return {x=x or 0,y=y or 0} end
@@ -801,7 +809,9 @@ function cb_draw(_ENV)
   end
   -- draw balloons
   for _,b in ipairs(balloons) do
-   circ(b.pos.x,b.pos.y,b.r,b.color)
+   elli(b.pos.x,b.pos.y,
+    b.r+sin(.03*b.t)/2,b.r+cos(1.5+.04*b.t)/2,
+    b.color)
   end
   -- draw refill station pings
   for _,rp in ipairs(refill_pings) do
