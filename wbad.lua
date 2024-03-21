@@ -106,7 +106,8 @@ function pal(c0,c1,type)
  end
 end
 -- pico8-like camera() feature, plus
--- overloaded draw calls that support.
+-- overloaded draw calls that
+-- automatically add the camera offset
 camera_x,camera_y=0,0
 function camera(x,y)
  camera_x,camera_y=x or 0,y or 0
@@ -841,31 +842,70 @@ function cb_draw(_ENV)
          -(p.vpcenter.y-p.focus.y))
   -- draw map
   map(0,0,30*3,17*6,0,0)
+  -- build list of draw calls
+  local draws={}
   -- draw the players
   for _,p2 in ipairs(players) do -- draw corpses
-   draw_player(p2)
+   add(draws,{
+    order=p2.pos.y,
+    f=draw_player,
+    args={p2},
+   })
   end
   -- draw water particles
   for _,wp in ipairs(wparts) do
    local c=wp.ttl<2 and C_DARKGREY
                      or wp.color
-   pix(wp.pos.x,wp.pos.y,c)
+   add(draws,{
+    order=wp.pos.y,
+    f=pix,
+    args={wp.pos.x,wp.pos.y,c},
+   })
   end
   -- draw balloons
   for _,b in ipairs(balloons) do
-   draw_balloon(b.pos.x,b.pos.y,
-    b.r,b.color,b.t,b.t1)
+   add(draws,{
+    order=b.pos.y,
+    f=draw_balloon,
+    args={b.pos.x,b.pos.y,
+          b.r,b.color,b.t,b.t1},
+   })
   end
   -- draw refill station pings
   for _,rp in ipairs(refill_pings) do
-   circb(rp.pos.x,rp.pos.y,rp.radius,rp.radius%16)
+   add(draws,{
+    order=rp.pos.y,
+    f=circb,
+    args={rp.pos.x,rp.pos.y,
+          rp.radius,rp.radius%16},
+   })
   end
   -- draw refill stations
   for _,r in ipairs(refills) do
-   spr(SID_REFILL,r.pos.x,r.pos.y,C_TRANSPARENT)
+   add(draws,{
+    order=r.pos.y,
+    f=spr,
+    args={SID_REFILL,r.pos.x,r.pos.y,
+          C_TRANSPARENT},
+   })
    if p.refill_cooldown>0 then
     local h=8*p.refill_cooldown/K_REFILL_COOLDOWN
-    rect(r.pos.x,r.pos.y+8-h,8,h,C_RED)
+    add(draws,{
+     order=r.pos.y,
+     f=rect,
+     args={r.pos.x,r.pos.y+8-h,8,h,
+           C_RED},
+    })
+   end
+   -- sort and emit draw calls.
+   -- TODO: rebuilding & sorting this
+   -- table per-player is wasteful;
+   -- it is mostly identical for all.
+   table.sort(draws,
+    function(a,b) return a.order<b.order end
+   )
+   for _,d in ipairs(draws) do
+    d.f(table.unpack(d.args))
    end
   end
   -- restore screen-space camera
