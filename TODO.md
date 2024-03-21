@@ -4,14 +4,6 @@ TODO:
 - Player movement
   - implement running
   - draw differently in bushes
-- Water balloons
-  * implement balloons hitting players
-  - implement windup
-  - implement splash damage
-- recharge stations
-  * implement health bars and ammo counters
-  * implement recharges
-  - implement pings when players recharge
 - helpers
   - formalize mode:leave() method
   - bring over the fade() helper function, if needed
@@ -28,3 +20,11 @@ DONE:
 * implement throwing, spawning/despawning, drawing balloons
 * implement balloons hitting terrain
 * 2d vector math type
+* Water balloons
+  * implement balloons hitting players
+  * implement windup
+  * implement splash damage
+* recharge stations
+  * implement health bars and ammo counters
+  * implement recharges
+  * implement pings when players recharge
