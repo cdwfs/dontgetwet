@@ -280,8 +280,9 @@ function animgraph(states,start_state)
   states=states,
   sn=start_state,
   s=states[start_state],
+  v=states[start_state][1]:nextv(),
   nextv=function(_ENV)
-   local v=s[1]:nextv()
+   v=s[1]:nextv()
    while not v do
     s,sn=states[s[2]],s[2]
     s[1]:rewind()
@@ -292,6 +293,7 @@ function animgraph(states,start_state)
   to=function(_ENV,new_state)
    s,sn=states[new_state],new_state
    s[1]:rewind()
+   v=s[1]:nextv()
   end,
  }
 end
@@ -771,6 +773,8 @@ function cb_update(_ENV)
   end
   if new_sn~=p.anims.sn then
    p.anims:to(new_sn)
+  else
+   p.anims:nextv()
   end
   -- Update player's camera focus.
   p.focus.x=approach(p.focus.x,p.pos.x+4,.2)//1
@@ -954,7 +958,7 @@ function draw_player(player)
  -- draw player
  local prev=peek4(2*0x03FF0+4)
  poke4(2*0x03FF0+4,p.color)
- spr(p.anims:nextv(),
+ spr(p.anims.v,
      p.pos.x-4,
      p.pos.y-8,
      C_TRANSPARENT,1,p.hflip,0,2,2)
