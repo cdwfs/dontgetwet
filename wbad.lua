@@ -443,9 +443,33 @@ function BOOT()
  game_frames=0
 end
 
+update_time_history={}
+draw_time_history={}
 function TIC()
+ local t0=time()
  mode_obj:update()
+ local t1=time()
  mode_obj:draw()
+ local t2=time()
+ local round2=function(x)
+  return (10*x//1)*0.1
+ end
+ local update_ms=round2(t1-t0)
+ local   draw_ms=round2(t2-t1)
+ update_time_history[1+mode_frames%60]=update_ms
+ draw_time_history[1+mode_frames%60]=draw_ms
+ local update_avg=0
+ local draw_avg=0
+ for i=1,#draw_time_history do
+  update_avg=update_avg+update_time_history[i]
+  draw_avg=draw_avg+draw_time_history[i]
+ end
+ update_avg=round2(update_avg/#update_time_history)
+ draw_avg=round2(draw_avg/#draw_time_history)
+ camera()
+ clip()
+ print("update: "..update_ms.." avg: "..update_avg,4,4,C_WHITE,true)
+ print("  draw: "..draw_ms.." avg: "..draw_avg,4,12,C_WHITE,true)
  process_frame_hooks_by_mode(game_mode,"exec")
  mode_frames=mode_frames+1
  if next_mode~=game_mode then
