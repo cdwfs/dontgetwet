@@ -578,11 +578,15 @@ function cb_enter(args)
     add(cb.trees,{
      pos=v2(mx*8,my*8),
      flip=flr(rnd(2)),
+     bounds0=v2(mx*8-8, my*8-24),
+     bounds1=v2(mx*8+15,my*8+7),
     })
     mset(mx,my,TID_GRASS_NOMOVE)
    elseif tid==TID_SPAWN_MBARS then
     add(cb.mbars,{
      pos=v2(mx*8,my*8),
+     bounds0=v2(mx*8,my*8-16),
+     bounds1=v2(mx*8+23,mx*8+7),
      colorkey=15,
     })
     -- monkey bars are 3 tiles wide
@@ -593,6 +597,8 @@ function cb_enter(args)
    elseif tid==TID_SPAWN_SWING then
     add(cb.swings,{
      pos=v2(mx*8,my*8),
+     bounds0=v2(mx*8, my*8-16),
+     bounds1=v2(mx*8+31, my*8+7),
     })
     -- swings are 4 tiles wide
     for x=mx,mx+3 do
@@ -601,21 +607,27 @@ function cb_enter(args)
    elseif tid==TID_SPAWN_ELEPHANT then
     add(cb.elephants,{
      pos=v2(mx*8,my*8),
+     bounds0=v2(mx*8-4, my*8-8),
+     bounds1=v2(mx*8+11,my*8+7),
     })
     mset(mx,my,TID_GRASS_NOMOVE)
    elseif tid==TID_SPAWN_REFILL then
     add(cb.refills,{
      pos=v2(mx*8,my*8),
+     bounds0=v2(mx*8-5, my*8),
+     bounds1=v2(mx*8+5, my*8+8),
     })
     mset(mx,my,TID_GRASS)
    elseif tid==TID_SPAWN_PLAYER then
     add(cb.player_spawns,v2(mx,my))
     mset(mx,my,TID_GRASS)
    elseif tid==TID_SPAWN_BUSH then
+    local dx,dy=rnd(4)//1,rnd(7)//1
     add(cb.bushes,{
-     pos=v2(mx*8+rnd(4)//1,
-            my*8+rnd(7)//1),
+     pos=v2(mx*8+dx,my*8+dy),
      flip=flr(rnd(2)),
+     bounds0=v2(mx*8+dx-8,my*8+dy-8),
+     bounds1=v2(mx*8+dx+7,my*8+dy+7),
     })
     mset(mx,my,TID_GRASS)
    end
@@ -953,118 +965,147 @@ function cb_draw(_ENV)
   -- build list of draw calls inside
   -- the culling rect
   local draws={}
-  local add_draw=function(order,order2,bounds,f,args)
+  -- draw the players
+  for _,p2 in ipairs(players) do -- draw corpses
    if rects_overlap(cull0,cull1,
-       v2(bounds[1],bounds[2]),
-       v2(bounds[3],bounds[4])) then
+       v2add(p2.pos,v2(-8,-8)),
+       v2add(p2.pos,v2(8,8))) then
     add(draws,{
-     order=order, order2=order2,
-     f=f, args=args,
+     order=p2.pos.y, order2=p2.pos.x,
+     f=draw_player, args={p2}
     })
    end
   end
-  -- draw the players
-  for _,p2 in ipairs(players) do -- draw corpses
-   add_draw(p2.pos.y, p2.pos.x,
-    {p2.pos.x-8, p2.pos.y-8,
-     p2.pos.x+8, p2.pos.y+8},
-    draw_player,
-    {p2})
-  end
   -- draw water particles
   for _,wp in ipairs(wparts) do
-   local c=wp.ttl<2 and C_DARKGREY
-                     or wp.color
-   add_draw(wp.pos.y, wp.pos.x,
-    {wp.pos.x, wp.pos.y,
-     wp.pos.x, wp.pos.y},
-    pix,
-    {wp.pos.x, wp.pos.y, c})
+   if rects_overlap(cull0,cull1,
+       wp.pos, wp.pos) then
+    local c=wp.ttl<2 and C_DARKGREY
+                      or wp.color
+    add(draws,{
+     order=wp.pos.y, order2=wp.pos.x,
+     f=pix, args={
+      wp.pos.x, wp.pos.y, c
+     }
+    })
+   end
   end
   -- draw balloons
   for _,b in ipairs(balloons) do
-   add_draw(b.pos.y, b.pos.x,
-    {b.pos.x-b.r, b.pos.y-b.r,
-     b.pos.x+b.r, b.pos.y+b.r},
-    draw_balloon,
-    {b.pos.x, b.pos.y,
-     b.r, b.color, b.t, b.t1})
+   if rects_overlap(cull0,cull1,
+       v2sub(b.pos,v2(b.r+2,b.r+2)),
+       v2add(b.pos,v2(b.r+2,b.r+8))) then
+    add(draws,{
+     order=b.pos.y, order2=b.pos.x,
+     f=draw_balloon, args={
+      b.pos.x, b.pos.y,
+      b.r, b.color, b.t, b.t1
+     }
+    })
+   end
   end
   -- draw trees
   for _,t in ipairs(trees) do
-   add_draw(t.pos.y+1, t.pos.x,
-    {t.pos.x-8, t.pos.y-28,
-     t.pos.x+16, t.pos.y+8},
-    spr,
-    {SID_TREE, t.pos.x-8, t.pos.y-28,
-     C_TRANSPARENT, 1, t.flip,
-     0,3,4})
+   if rects_overlap(cull0,cull1,
+       t.bounds0, t.bounds1) then
+    add(draws,{
+     order=t.pos.y+1, order2=t.pos.x,
+     f=spr, args={
+      SID_TREE, t.pos.x-8, t.pos.y-28,
+      C_TRANSPARENT, 1, t.flip,
+      0,3,4
+     }
+    })
+   end
   end
   -- draw bushes
   for _,b in ipairs(bushes) do
-   add_draw(b.pos.y, b.pos.x,
-    {b.pos.x-8, b.pos.y-8,
-     b.pos.x+8, b.pos.y+8},
-    spr,
-    {SID_BUSH, b.pos.x-8, b.pos.y-8,
-     C_TRANSPARENT, 1, b.flip,
-     0,2,2})
+   if rects_overlap(cull0,cull1,
+       b.bounds0, b.bounds1) then
+    add(draws,{
+     order=b.pos.y, order2=b.pos.x,
+     f=spr, args={
+      SID_BUSH, b.pos.x-8, b.pos.y-8,
+      C_TRANSPARENT, 1, b.flip,
+      0,2,2
+     }
+    })
+   end
   end
   -- draw monkey bars
   for _,m in ipairs(mbars) do
-   add_draw(m.pos.y, m.pos.x,
-    {m.pos.x, m.pos.y-16,
-     m.pos.x+24, m.pos.y+8},
-    spr,
-    {SID_MBARS, m.pos.x, m.pos.y-16,
-     m.colorkey, 1, 0,
-     0,3,3})
+   if rects_overlap(cull0,cull1,
+       m.bounds0, m.bounds1) then
+    add(draws,{
+     order=m.pos.y, order2=m.pos.x,
+     f=spr, args={
+      SID_MBARS, m.pos.x, m.pos.y-16,
+      m.colorkey, 1,0, 0,3,3
+     }
+    })
+   end
   end
   -- draw swings
   for _,s in ipairs(swings) do
-   add_draw(s.pos.y, s.pos.x,
-    {s.pos.x, s.pos.y-16,
-     s.pos.x+32, s.pos.y+8},
-    spr,
-    {SID_SWING, s.pos.x, s.pos.y-16,
-     C_TRANSPARENT, 1, 0,
-     0,4,3})
+   if rects_overlap(cull0,cull1,
+       s.bounds0, s.bounds1) then
+    add(draws,{
+     order=s.pos.y, order2=s.pos.x,
+     f=spr, args={
+      SID_SWING, s.pos.x, s.pos.y-16,
+      C_TRANSPARENT, 1,0, 0,4,3
+     }
+    })
+   end
   end
   -- draw elephants
   for _,e in ipairs(elephants) do
-   add_draw(e.pos.y, e.pos.x,
-    {e.pos.x-4, e.pos.y-8,
-     e.pos.x+12, e.pos.y+8},
-    spr,
-    {SID_ELEPHANT, e.pos.x-4, e.pos.y-8,
-     C_TRANSPARENT, 1, 0,
-     0,2,2})
+   if rects_overlap(cull0,cull1,
+       e.bounds0,e.bounds1) then
+    add(draws,{
+     order=e.pos.y, order2=e.pos.x,
+     f=spr, args={
+      SID_ELEPHANT, e.pos.x-4, e.pos.y-8,
+      C_TRANSPARENT, 1,0, 0,2,2
+     }
+    })
+   end
   end
   -- draw refill station pings
   for _,rp in ipairs(refill_pings) do
-   add_draw(rp.pos.y, rp.pos.x,
-    {rp.pos.x-rp.radius, rp.pos.y-rp.radius,
-     rp.pos.x+rp.radius, rp.pos.y+rp.radius},
-    circb,
-    {rp.pos.x, rp.pos.y,
-     rp.radius, rp.radius%16})
+   if rects_overlap(cull0,cull1,
+       v2sub(rp.pos,v2(rp.radius,rp.radius)),
+       v2add(rp.pos,v2(rp.radius,rp.radius))) then
+    add(draws,{
+     order=rp.pos.y, order2=rp.pos.x,
+     f=circ, args={
+      rp.pos.x, rp.pos.y,
+      rp.radius, rp.radius%16
+     }
+    })
+   end
   end
   -- draw refill stations
   for _,r in ipairs(refills) do
-   add_draw(r.pos.y, r.pos.x,
-    {r.pos.x-4, r.pos.y,
-     r.pos.x+6, r.pos.y+8},
-    spr,
-    {SID_REFILL, r.pos.x-4, r.pos.y,
-     C_TRANSPARENT,1,0,0,2,1})
-   if p.refill_cooldown>0 then
-    local h=8*p.refill_cooldown/K_REFILL_COOLDOWN
-    add_draw(r.pos.y+7, r.pos.x,
-     {r.pos.x-1, r.pos.y+8-h,
-      r.pos.x+9, r.pos.y+8},
-     rect,
-     {r.pos.x-1, r.pos.y+8-h, 10, h,
-      C_RED})
+   if rects_overlap(cull0,cull1,
+       r.bounds0,r.bounds1) then
+    add(draws,{
+     order=r.pos.y, order2=r.pos.x,
+     f=spr, args={
+      SID_REFILL, r.pos.x-4, r.pos.y,
+      C_TRANSPARENT, 1,0, 0,2,1
+     }
+    })
+    if p.refill_cooldown>0 then
+     local h=8*p.refill_cooldown/K_REFILL_COOLDOWN
+     add(draws,{
+      order=r.pos.y+7, order2=r.pos.x,
+      f=rect, args={
+       r.pos.x-1, r.pos.y+8-h, 10, h,
+       C_RED
+      }
+     })
+    end
    end
    -- sort and emit draw calls.
    table.sort(draws,
