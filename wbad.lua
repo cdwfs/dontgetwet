@@ -1078,7 +1078,7 @@ function cb_draw(_ENV)
        v2add(rp.pos,v2(rp.radius,rp.radius))) then
     add(draws,{
      order=rp.pos.y, order2=rp.pos.x,
-     f=circ, args={
+     f=circb, args={
       rp.pos.x, rp.pos.y,
       rp.radius, rp.radius%16
      }
