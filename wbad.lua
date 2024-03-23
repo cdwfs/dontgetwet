@@ -586,7 +586,7 @@ function cb_enter(args)
     add(cb.mbars,{
      pos=v2(mx*8,my*8),
      bounds0=v2(mx*8,my*8-16),
-     bounds1=v2(mx*8+23,mx*8+7),
+     bounds1=v2(mx*8+23,my*8+7),
      colorkey=15,
     })
     -- monkey bars are 3 tiles wide
