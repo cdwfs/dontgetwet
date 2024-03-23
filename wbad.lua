@@ -26,6 +26,7 @@ PID_COLORS={2,10,4,12}
 C_WHITE=8
 C_BLACK=0
 C_DARKGREY=3
+C_DARKGREEN=11
 C_LIGHTBLUE=13
 C_RED=5
 C_TRANSPARENT=5 -- by default
@@ -971,11 +972,13 @@ function cb_draw(_ENV)
   -- build list of draw calls inside
   -- the culling rect
   local draws={}
-  -- draw the players
+  -- draw players
   for _,p2 in ipairs(players) do -- draw corpses
    if rects_overlap(cull0,cull1,
        v2add(p2.pos,v2(-8,-8)),
        v2add(p2.pos,v2(8,8))) then
+    elli(p2.pos.x+4,p2.pos.y+7,
+         5,2,C_DARKGREEN)
     add(draws,{
      order=p2.pos.y, order2=p2.pos.x,
      f=draw_player, args={p2}
@@ -1003,6 +1006,7 @@ function cb_draw(_ENV)
    if rects_overlap(cull0,cull1,
        v2sub(b.pos,v2(b.r+2,b.r+2)),
        v2add(b.pos,v2(b.r+2,b.r+8))) then
+    elli(b.pos.x,b.pos.y+2,b.r,2,C_DARKGREEN)
     add(draws,{
      order=b.pos.y, order2=b.pos.x,
      f=draw_balloon, args={
@@ -1016,6 +1020,8 @@ function cb_draw(_ENV)
   for _,t in ipairs(trees) do
    if rects_overlap(cull0,cull1,
        t.bounds0, t.bounds1) then
+    elli(t.pos.x+4, t.pos.y+7,
+     10,3,C_DARKGREEN)
     add(draws,{
      order=t.pos.y+1, order2=t.pos.x,
      f=function(t)
@@ -1029,6 +1035,8 @@ function cb_draw(_ENV)
   for _,b in ipairs(bushes) do
    if rects_overlap(cull0,cull1,
        b.bounds0, b.bounds1) then
+    elli(b.pos.x,b.pos.y+7,
+         8,2,C_DARKGREEN)
     add(draws,{
      order=b.pos.y, order2=b.pos.x,
      f=function(b)
@@ -1042,6 +1050,10 @@ function cb_draw(_ENV)
   for _,m in ipairs(mbars) do
    if rects_overlap(cull0,cull1,
        m.bounds0, m.bounds1) then
+    line(m.pos.x,m.pos.y+7,
+         m.pos.x+23,m.pos.y+7,C_DARKGREEN)
+    line(m.pos.x+6,m.pos.y+5,
+         m.pos.x+17,m.pos.y+5,C_DARKGREEN)
     add(draws,{
      order=m.pos.y, order2=m.pos.x,
      f=function(m)
@@ -1055,6 +1067,10 @@ function cb_draw(_ENV)
   for _,s in ipairs(swings) do
    if rects_overlap(cull0,cull1,
        s.bounds0, s.bounds1) then
+    line(s.pos.x+1,s.pos.y+5,
+         s.pos.x+26,s.pos.y+5,C_DARKGREEN)
+    elli(s.pos.x+10,s.pos.y+6,4,1,C_DARKGREEN)
+    elli(s.pos.x+21,s.pos.y+6,4,1,C_DARKGREEN)
     add(draws,{
      order=s.pos.y, order2=s.pos.x,
      f=function(s)
@@ -1068,6 +1084,7 @@ function cb_draw(_ENV)
   for _,e in ipairs(elephants) do
    if rects_overlap(cull0,cull1,
        e.bounds0,e.bounds1) then
+    elli(e.pos.x+4,e.pos.y+7,7,2,C_DARKGREEN)
     add(draws,{
      order=e.pos.y, order2=e.pos.x,
      f=function(e)
@@ -1095,6 +1112,7 @@ function cb_draw(_ENV)
   for _,r in ipairs(refills) do
    if rects_overlap(cull0,cull1,
        r.bounds0,r.bounds1) then
+    elli(r.pos.x+4,r.pos.y+7,6,2,C_DARKGREEN)
     add(draws,{
      order=r.pos.y, order2=r.pos.x,
      f=function(r,cooldown)
@@ -1197,9 +1215,6 @@ function draw_balloon(x,y,r,color,t,t1)
  local yoff=6*sin(-0.5*t/t1)
  local rx,ry=r+sin(.03*t)/2,
              r+cos(1.5+.04*t)/2
- if t>0 then -- drop shadow
-  elli(x,y+2,rx,2,C_DARKGREY)
- end
  elli(x,y-yoff,rx+1,ry+1,C_BLACK)
  elli(x,y-yoff,rx,ry,color)
 end
