@@ -653,6 +653,8 @@ function cb_create_player(pid)
   - focus is the world-space
     position that should be drawn at
     the center of the player's viewport.
+    It tracks the player's position, but
+    lags slightly.
   - The final screen-space coordinates
     for an object at world-space pos wp
     for a given player are:
@@ -933,116 +935,138 @@ function cb_draw(_ENV)
   clip(table.unpack(pclip))
   camera(-(p.vpcenter.x-p.focus.x),
          -(p.vpcenter.y-p.focus.y))
+  -- compute culling rectangle extents,
+  -- in world-space pixels.
+  local clipdim=v2(pclip[3],pclip[4])
+  local cull0=v2flr(
+   v2sub(p.focus,v2scl(clipdim,0.5)))
+  local cull1=v2add(cull0,clipdim)
+  local cull_padding=v2(2,2)
+  cull0=v2sub(cull0,cull_padding)
+  cull1=v2add(cull1,cull_padding)
   -- draw map
-  map(0,0,30*3,17*6,0,0)
-  -- build list of draw calls
+  local m0=v2(cull0.x//8,cull0.y//8)
+  map(m0.x,m0.y,
+      (cull1.x-cull0.x+7)//8,
+      (cull1.y-cull0.y+7)//8 + 1,
+      m0.x*8,m0.y*8)
+  -- build list of draw calls inside
+  -- the culling rect
   local draws={}
+  local add_draw=function(order,order2,bounds,f,args)
+   if rects_overlap(cull0,cull1,
+       v2(bounds[1],bounds[2]),
+       v2(bounds[3],bounds[4])) then
+    add(draws,{
+     order=order, order2=order2,
+     f=f, args=args,
+    })
+   end
+  end
   -- draw the players
   for _,p2 in ipairs(players) do -- draw corpses
-   add(draws,{
-    order=p2.pos.y,order2=p2.pos.x,
-    f=draw_player,
-    args={p2},
-   })
+   add_draw(p2.pos.y, p2.pos.x,
+    {p2.pos.x-8, p2.pos.y-8,
+     p2.pos.x+8, p2.pos.y+8},
+    draw_player,
+    {p2})
   end
   -- draw water particles
   for _,wp in ipairs(wparts) do
    local c=wp.ttl<2 and C_DARKGREY
                      or wp.color
-   add(draws,{
-    order=wp.pos.y,order2=wp.pos.x,
-    f=pix,
-    args={wp.pos.x,wp.pos.y,c},
-   })
+   add_draw(wp.pos.y, wp.pos.x,
+    {wp.pos.x, wp.pos.y,
+     wp.pos.x, wp.pos.y},
+    pix,
+    {wp.pos.x, wp.pos.y, c})
   end
   -- draw balloons
   for _,b in ipairs(balloons) do
-   add(draws,{
-    order=b.pos.y,order2=b.pos.x,
-    f=draw_balloon,
-    args={b.pos.x,b.pos.y,
-          b.r,b.color,b.t,b.t1},
-   })
+   add_draw(b.pos.y, b.pos.x,
+    {b.pos.x-b.r, b.pos.y-b.r,
+     b.pos.x+b.r, b.pos.y+b.r},
+    draw_balloon,
+    {b.pos.x, b.pos.y,
+     b.r, b.color, b.t, b.t1})
   end
   -- draw trees
   for _,t in ipairs(trees) do
-   add(draws,{
-    order=t.pos.y+1,order2=t.pos.x,
-    f=spr,
-    args={SID_TREE,t.pos.x-8,t.pos.y-28,
-          C_TRANSPARENT,1,t.flip,0,3,4},
-   })
+   add_draw(t.pos.y+1, t.pos.x,
+    {t.pos.x-8, t.pos.y-28,
+     t.pos.x+16, t.pos.y+8},
+    spr,
+    {SID_TREE, t.pos.x-8, t.pos.y-28,
+     C_TRANSPARENT, 1, t.flip,
+     0,3,4})
   end
   -- draw bushes
   for _,b in ipairs(bushes) do
-   add(draws,{
-    order=b.pos.y,order2=b.pos.x,
-    f=spr,
-    args={SID_BUSH,b.pos.x,b.pos.y-8,
-          C_TRANSPARENT,1,b.flip,
-          0,2,2},
-   })
+   add_draw(b.pos.y, b.pos.x,
+    {b.pos.x-8, b.pos.y-8,
+     b.pos.x+8, b.pos.y+8},
+    spr,
+    {SID_BUSH, b.pos.x-8, b.pos.y-8,
+     C_TRANSPARENT, 1, b.flip,
+     0,2,2})
   end
   -- draw monkey bars
   for _,m in ipairs(mbars) do
-   add(draws,{
-    order=m.pos.y,order2=m.pos.x,
-    f=spr,
-    args={SID_MBARS,m.pos.x,m.pos.y-16,
-          m.colorkey,1,0,
-          0,3,3},
-   })
+   add_draw(m.pos.y, m.pos.x,
+    {m.pos.x, m.pos.y-16,
+     m.pos.x+24, m.pos.y+8},
+    spr,
+    {SID_MBARS, m.pos.x, m.pos.y-16,
+     m.colorkey, 1, 0,
+     0,3,3})
   end
   -- draw swings
   for _,s in ipairs(swings) do
-   add(draws,{
-    order=s.pos.y,order2=s.pos.x,
-    f=spr,
-    args={SID_SWING,s.pos.x,s.pos.y-16,
-          C_TRANSPARENT,1,0,
-          0,4,3},
-   })
+   add_draw(s.pos.y, s.pos.x,
+    {s.pos.x, s.pos.y-16,
+     s.pos.x+32, s.pos.y+8},
+    spr,
+    {SID_SWING, s.pos.x, s.pos.y-16,
+     C_TRANSPARENT, 1, 0,
+     0,4,3})
   end
   -- draw elephants
   for _,e in ipairs(elephants) do
-   add(draws,{
-    order=e.pos.y,order2=e.pos.x,
-    f=spr,
-    args={SID_ELEPHANT,e.pos.x-4,e.pos.y-8,
-          C_TRANSPARENT,1,0,
-          0,2,2},
-   })
+   add_draw(e.pos.y, e.pos.x,
+    {e.pos.x-4, e.pos.y-8,
+     e.pos.x+12, e.pos.y+8},
+    spr,
+    {SID_ELEPHANT, e.pos.x-4, e.pos.y-8,
+     C_TRANSPARENT, 1, 0,
+     0,2,2})
   end
   -- draw refill station pings
   for _,rp in ipairs(refill_pings) do
-   add(draws,{
-    order=rp.pos.y,order2=rp.pos.x,
-    f=circb,
-    args={rp.pos.x,rp.pos.y,
-          rp.radius,rp.radius%16},
-   })
+   add_draw(rp.pos.y, rp.pos.x,
+    {rp.pos.x-rp.radius, rp.pos.y-rp.radius,
+     rp.pos.x+rp.radius, rp.pos.y+rp.radius},
+    circb,
+    {rp.pos.x, rp.pos.y,
+     rp.radius, rp.radius%16})
   end
   -- draw refill stations
   for _,r in ipairs(refills) do
-   add(draws,{
-    order=r.pos.y,order2=r.pos.x,
-    f=spr,
-    args={SID_REFILL,r.pos.x-4,r.pos.y,
-          C_TRANSPARENT,1,0,0,2,1},
-   })
+   add_draw(r.pos.y, r.pos.x,
+    {r.pos.x-4, r.pos.y,
+     r.pos.x+6, r.pos.y+8},
+    spr,
+    {SID_REFILL, r.pos.x-4, r.pos.y,
+     C_TRANSPARENT,1,0,0,2,1})
    if p.refill_cooldown>0 then
     local h=8*p.refill_cooldown/K_REFILL_COOLDOWN
-    add(draws,{
-     order=r.pos.y+7,order2=r.pos.x,
-     f=rect,
-     args={r.pos.x-1,r.pos.y+8-h,10,h,
-           C_RED},
-    })
+    add_draw(r.pos.y+7, r.pos.x,
+     {r.pos.x-1, r.pos.y+8-h,
+      r.pos.x+9, r.pos.y+8},
+     rect,
+     {r.pos.x-1, r.pos.y+8-h, 10, h,
+      C_RED})
    end
    -- sort and emit draw calls.
-   -- TODO: rebuilding & sorting this
-   -- table per-player is wasteful;
-   -- it is mostly identical for all.
    table.sort(draws,
     function(a,b)
      return a.order<b.order
