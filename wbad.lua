@@ -241,6 +241,12 @@ function lerp(a,b,t)
  return a+(b-a)*t
 end
 
+-- a0,a1,b0,b1 are v2 bounds of two rects
+function rects_overlap(a0,a1,b0,b1)
+ return a1.x>=b0.x and a0.x<=b1.x
+    and a1.y>=b0.y and a0.y<=b1.y
+end
+
 -- return pixel x,y for a sprite.
 -- useful for the ttri() function.
 function sprxy(sid)
@@ -902,10 +908,9 @@ function cb_update(_ENV)
   p.refill_cooldown=max(0,p.refill_cooldown-1)
   for _,r in ipairs(refills) do
    if p.refill_cooldown==0
-   and p.pos.x+7>=r.pos.x
-   and p.pos.x  <=r.pos.x+7
-   and p.pos.y+7>=r.pos.y
-   and p.pos.y  <=r.pos.y+7 then
+   and rects_overlap(
+    p.pos,v2add(p.pos,v2(7,7)),
+    r.pos,v2add(r.pos,v2(7,7))) then
     -- TODO play sound
     p.health=K_MAX_HEALTH
     p.ammo=K_MAX_AMMO
