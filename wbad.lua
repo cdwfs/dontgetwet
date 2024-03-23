@@ -951,7 +951,7 @@ function cb_draw(_ENV)
     f=spr,
     args={SID_BUSH,b.pos.x,b.pos.y-8,
           C_TRANSPARENT,1,b.flip,
-          0,1,2},
+          0,2,2},
    })
   end
   -- draw monkey bars
