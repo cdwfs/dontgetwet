@@ -451,6 +451,7 @@ end
 
 update_time_history={}
 draw_time_history={}
+show_fps=false
 function TIC()
  local t0=time()
  mode_obj:update()
@@ -474,8 +475,11 @@ function TIC()
  draw_avg=round2(draw_avg/#draw_time_history)
  camera()
  clip()
- print("update: "..update_ms.." avg: "..update_avg,4,4,C_WHITE,true)
- print("  draw: "..draw_ms.." avg: "..draw_avg,4,12,C_WHITE,true)
+ if btnp(6) then show_fps=not show_fps end
+ if show_fps then
+  print("update: "..update_ms.." avg: "..update_avg,4,4,C_WHITE,true)
+  print("  draw: "..draw_ms.." avg: "..draw_avg,4,12,C_WHITE,true)
+ end
  process_frame_hooks_by_mode(game_mode,"exec")
  mode_frames=mode_frames+1
  if next_mode~=game_mode then
