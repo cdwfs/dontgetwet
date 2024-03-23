@@ -983,6 +983,8 @@ function cb_draw(_ENV)
    end
   end
   -- draw water particles
+  -- TODO: maybe a draw-call per
+  -- particle is overkill?
   for _,wp in ipairs(wparts) do
    if rects_overlap(cull0,cull1,
        wp.pos, wp.pos) then
@@ -1016,11 +1018,10 @@ function cb_draw(_ENV)
        t.bounds0, t.bounds1) then
     add(draws,{
      order=t.pos.y+1, order2=t.pos.x,
-     f=spr, args={
-      SID_TREE, t.pos.x-8, t.pos.y-28,
-      C_TRANSPARENT, 1, t.flip,
-      0,3,4
-     }
+     f=function(t)
+      spr(SID_TREE,t.pos.x-8,t.pos.y-24,
+       C_TRANSPARENT, 1,t.flip,0, 3,4)
+     end, args={t}
     })
    end
   end
@@ -1030,11 +1031,10 @@ function cb_draw(_ENV)
        b.bounds0, b.bounds1) then
     add(draws,{
      order=b.pos.y, order2=b.pos.x,
-     f=spr, args={
-      SID_BUSH, b.pos.x-8, b.pos.y-8,
-      C_TRANSPARENT, 1, b.flip,
-      0,2,2
-     }
+     f=function(b)
+      spr(SID_BUSH, b.pos.x-8, b.pos.y-8,
+       C_TRANSPARENT, 1,b.flip,0, 2,2)
+     end, args={b}
     })
    end
   end
@@ -1044,10 +1044,10 @@ function cb_draw(_ENV)
        m.bounds0, m.bounds1) then
     add(draws,{
      order=m.pos.y, order2=m.pos.x,
-     f=spr, args={
-      SID_MBARS, m.pos.x, m.pos.y-16,
-      m.colorkey, 1,0, 0,3,3
-     }
+     f=function(m)
+      spr(SID_MBARS, m.pos.x, m.pos.y-16,
+       m.colorkey, 1,0,0, 3,3)
+     end, args={m}
     })
    end
   end
@@ -1057,10 +1057,10 @@ function cb_draw(_ENV)
        s.bounds0, s.bounds1) then
     add(draws,{
      order=s.pos.y, order2=s.pos.x,
-     f=spr, args={
-      SID_SWING, s.pos.x, s.pos.y-16,
-      C_TRANSPARENT, 1,0, 0,4,3
-     }
+     f=function(s)
+      spr(SID_SWING, s.pos.x, s.pos.y-16,
+       C_TRANSPARENT, 1,0,0, 4,3)
+     end, args={s}
     })
    end
   end
@@ -1070,10 +1070,10 @@ function cb_draw(_ENV)
        e.bounds0,e.bounds1) then
     add(draws,{
      order=e.pos.y, order2=e.pos.x,
-     f=spr, args={
-      SID_ELEPHANT, e.pos.x-4, e.pos.y-8,
-      C_TRANSPARENT, 1,0, 0,2,2
-     }
+     f=function(e)
+      spr(SID_ELEPHANT, e.pos.x-4, e.pos.y-8,
+       C_TRANSPARENT, 1,0,0, 2,2)
+     end, args={e}
     })
    end
   end
@@ -1084,10 +1084,10 @@ function cb_draw(_ENV)
        v2add(rp.pos,v2(rp.radius,rp.radius))) then
     add(draws,{
      order=rp.pos.y, order2=rp.pos.x,
-     f=circb, args={
-      rp.pos.x, rp.pos.y,
-      rp.radius, rp.radius%16
-     }
+     f=function(rp)
+      circb(rp.pos.x, rp.pos.y,
+            rp.radius, rp.radius%16)
+     end, args={rp}
     })
    end
   end
@@ -1097,21 +1097,16 @@ function cb_draw(_ENV)
        r.bounds0,r.bounds1) then
     add(draws,{
      order=r.pos.y, order2=r.pos.x,
-     f=spr, args={
-      SID_REFILL, r.pos.x-4, r.pos.y,
-      C_TRANSPARENT, 1,0, 0,2,1
-     }
+     f=function(r,cooldown)
+      spr(SID_REFILL, r.pos.x-4, r.pos.y,
+       C_TRANSPARENT, 1,0,0, 2,1)
+      if cooldown>0 then
+       local h=8*p.refill_cooldown/K_REFILL_COOLDOWN
+       rect(r.pos.x-1,r.pos.y+8-h,
+        10,h,C_RED)
+      end
+     end, args={r,p.refill_cooldown}
     })
-    if p.refill_cooldown>0 then
-     local h=8*p.refill_cooldown/K_REFILL_COOLDOWN
-     add(draws,{
-      order=r.pos.y+7, order2=r.pos.x,
-      f=rect, args={
-       r.pos.x-1, r.pos.y+8-h, 10, h,
-       C_RED
-      }
-     })
-    end
    end
    -- sort and emit draw calls.
    table.sort(draws,
