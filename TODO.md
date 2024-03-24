@@ -9,7 +9,7 @@ TODO:
   - bring over the fade() helper function, if needed
   - vararg print() helpers
   - implement ttri()-based rspr() if I need it
-
+- bugs
 DONE:
 * strip invisibrawl arrows/blood code
 * refactor init_player
@@ -28,3 +28,5 @@ DONE:
   * implement health bars and ammo counters
   * implement recharges
   * implement pings when players recharge
+* don't set hflip when player is facing up. Just flip the sprite in the sheet.
+* 2nd run doesn't work, the map has already been modified.
