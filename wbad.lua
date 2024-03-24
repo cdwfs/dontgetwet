@@ -541,7 +541,7 @@ end
 cb={}
 
 function cb_enter(args)
- sync(1|2|32,0)
+ sync(1|2|4|32,0)
  camera(0,0)
  cb=obj({
   update=cb_update,
