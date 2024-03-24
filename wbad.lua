@@ -920,7 +920,7 @@ function cb_update(_ENV)
  -- update refill station pings
  local refill_pings2={}
  for _,rp in ipairs(refill_pings) do
-  rp.radius=rp.radius+1
+  rp.radius=rp.radius+2
   if rp.radius<=K_MAX_PING_RADIUS then
    add(refill_pings2,rp)
   end
