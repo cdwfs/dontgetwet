@@ -1289,7 +1289,7 @@ vt={}
 function vt_enter(args)
  sync(1|2|32,0)
  camera(0,0)
- cls(0)
+ clip()
  vt=obj({
   update=vt_update,
   draw=vt_draw,
@@ -1298,16 +1298,38 @@ function vt_enter(args)
   player_teams=args.player_teams,
   winning_team=args.winning_team,
   players={},
-  grnd_y=80
+  grnd_y=80,
+  drop_spawns={},
+  drops={},
  })
+ -- create players evenly spaced
  local x0,x1=60,180
  local dx=(x1-x0)/(vt.player_count-1)
  for pid=1,vt.player_count do
   local p=create_player(pid,
            vt.player_teams[pid])
-  p.pos=v2(flr(x0+(pid-1)*dx),vt.grnd_y)
+  p.pos=v2(flr(x0+(pid-1)*dx-4),
+           vt.grnd_y)
   p.y0=vt.grnd_y
   add(vt.players,p)
+  p.anims:nextv()
+ end
+ -- Make a list of all pixels in a
+ -- sprite that are not transparent.
+ local sprites={258,259,274,275}
+ for _,s in ipairs(sprites) do
+  local sx,sy=(s-sprites[1])%16,
+              (s-sprites[1])//16
+  local a=0x6000+32*(s-256)
+  for y=0,7 do
+   for x=0,7 do
+    local c=peek4(2*a+y*8+x)
+    if c~=C_TRANSPARENT then
+     add(vt.drop_spawns,
+      v2(sx*8+x-4,sy*8+y-8))
+    end
+   end
+  end
  end
  return vt
 end
@@ -1326,28 +1348,59 @@ function vt_update(_ENV)
    player_count=player_count,
   })
  end
- -- bounce the winners
+ -- update water drops
+ local drops2={}
+ for _,d in ipairs(drops) do
+  d.vel=v2add(d.vel,v2(0,0.1))
+  d.pos=v2add(d.pos,d.vel)
+  if d.pos.y<d.y1 then
+   add(drops2,d)
+  end
+ end
+ drops=drops2
+ -- update players
  for _,p in ipairs(players) do
   if p.team==winning_team then
+   -- bounce the winners
    p.pos.y=p.y0-
            10*abs(sin(mode_frames/60))
+  else
+   -- spawn water drops on the losers
+   if mode_frames%6==0 then
+    local dsp=drop_spawns[math.random(#drop_spawns)]
+    add(drops,{
+     pos=v2add(p.pos,dsp),
+     y1=p.pos.y+7,
+     vel=v2(0,0),
+    })
+   end
   end
  end
 end
 
 function vt_draw(_ENV)
  cls(C_DARKGREY)
+ -- draw message
  local msg=(winning_team==0)
    and "It's a tie!"
     or ""..TEAM_NAMES[winning_team].." Team wins!"
  local msgw=print(msg,0,200)
  dsprint(msg,120-msgw/2,100,
   TEAM_COLORS[winning_team],C_BLACK)
+ -- draw players
  for _,p in ipairs(players) do
-  local srx=lerp(5,3,(p.y0-p.pos.y)/10)
-  local sry=lerp(2,1,(p.y0-p.pos.y)/10)
-  elli(p.pos.x+4,p.y0+7,srx,sry,C_DARKGREEN)
+  if p.team==winning_team then
+   local srx=lerp(5,3,(p.y0-p.pos.y)/10)
+   local sry=lerp(2,1,(p.y0-p.pos.y)/10)
+   elli(p.pos.x+4,p.y0+7,srx,sry,C_DARKGREEN)
+  else
+   elli(p.pos.x+4,p.y0+7,6,3,C_LIGHTBLUE)
+  end
   draw_player(p)
+ end
+ -- draw water drops
+ for _,d in ipairs(drops) do
+  pix(d.pos.x,d.pos.y,C_LIGHTBLUE)
  end
 end
 -- <TILES>
