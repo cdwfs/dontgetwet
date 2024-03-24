@@ -471,6 +471,7 @@ function TIC()
  process_frame_hooks_by_mode(game_mode,"exec")
  mode_frames=mode_frames+1
  if next_mode~=game_mode then
+  mode_obj:leave()
   game_mode=next_mode
   mode_frames=0
   mode_obj=mode_enters[game_mode](next_mode_enter_args)
@@ -527,7 +528,6 @@ function menu_update(_ENV)
      fade_black((ntotal-nleft)/ntotal)
     end,
     function()
-     mm:leave() -- TODO call this automatically
      set_next_mode("combat",{
       player_count=player_count,
      })
@@ -1023,7 +1023,6 @@ function cb_update(_ENV)
      fade_black((ntotal-nleft)/ntotal)
     end,
     function()
-     cb:leave() -- TODO call this automatically
      set_next_mode("victory",{
       player_count=all_player_count,
       player_teams=player_teams,
@@ -1403,7 +1402,6 @@ function vt_update(_ENV)
  -- go back to main menu
  if btnp(0*8+4) or btnp(1*8+4)
  or btnp(2*8+4) or btnp(3*8+4) then
-  vt:leave() -- TODO: call this automatically
   set_next_mode("menu",{
    player_count=player_count,
   })

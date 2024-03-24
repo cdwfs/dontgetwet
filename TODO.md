@@ -27,9 +27,7 @@ TODO:
   - in-game
   - victory
 - helpers
-  - formalize mode:leave() method
   - vararg print() helpers
-  - implement ttri()-based rspr() if I need it
 - art
   - winning player animation
   - losing player animation
@@ -63,3 +61,4 @@ X AI [defer to quadplay]
 * add sprite flag for "blocks balloons", separate from "blocks movement".
 * add fade-to-black helper, and fade between modes during transitions
 * flip hat direction for upward-facing kid. Or delete it.
+* call mode:leave() automatically
