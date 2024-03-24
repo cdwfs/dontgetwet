@@ -15,7 +15,11 @@
 K_MAX_ENERGY=100
 K_ENERGY_HIT=25
 K_ENERGY_SPLASH=10
+K_ENERGY_WALK=0.02 -- drain per frame
+K_ENERGY_RUN=0.1 -- drain per frame
 K_ENERGY_WARNING=0.3*K_MAX_ENERGY
+K_MAX_RUN_SPEED=1.0
+K_MAX_WALK_SPEED=0.6
 K_MAX_AMMO=5
 K_MAX_PING_RADIUS=600
 K_REFILL_COOLDOWN=60*5
@@ -689,6 +693,7 @@ function create_player(pid,team)
   color=TEAM_COLORS[team],
   pid=pid,
   team=team,
+  running=false,
   speed=0, -- how far to move in current dir per frame
   energy=K_MAX_ENERGY,
   ammo=K_MAX_AMMO,
@@ -814,7 +819,9 @@ function cb_update(_ENV)
  -- decrease energy of all players
  -- and check for elimination
  for _,p in ipairs(players) do
-  p.health=max(0,p.health-0.02)
+  local drain = p.running
+    and K_ENERGY_RUN or K_ENERGY_WALK
+  p.energy=max(0,p.energy-drain)
   if p.energy==0 then
    p.eliminated=true
    -- TODO other time-of-elimination
@@ -826,9 +833,13 @@ function cb_update(_ENV)
   local pb0=8*(p.pid-1)
   p.move.y=(btn(pb0+0) and -1 or 0)+(btn(pb0+1) and 1 or 0)
   p.move.x=(btn(pb0+2) and -1 or 0)+(btn(pb0+3) and 1 or 0)
+  p.running=btn(pb0+4)
+  local max_speed=p.running
+    and K_MAX_RUN_SPEED
+     or K_MAX_WALK_SPEED
   p.speed=(v2eq(p.move,v2zero))
    and max(p.speed-0.1,0)
-   or  min(p.speed+0.1,0.6)
+   or  min(p.speed+0.1,max_speed)
   -- TODO: walk one pixel at a time
   -- to make sure we don't get stuck
   -- in an obstacle
