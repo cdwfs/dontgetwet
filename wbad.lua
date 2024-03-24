@@ -647,7 +647,7 @@ function cb_enter(args)
  return cb
 end
 
-function cb_create_player(pid,team)
+function create_player(pid,team)
  return {
   --[[
   notes on player coordinates:
@@ -710,7 +710,7 @@ end
 function cb_init_players(cb)
  for pid=1,cb.all_player_count do
   local team=pid -- TODO: plumb this in from menu
-  local p=cb_create_player(pid,team)
+  local p=create_player(pid,team)
   -- choose a spawn tile
   local ispawn=math.random(#cb.player_spawns)
   p.fpos=v2scl(
@@ -1291,7 +1291,18 @@ function vt_enter(args)
   player_count=args.player_count,
   player_teams=args.player_teams,
   winning_team=args.winning_team,
+  players={},
+  grnd_y=80
  })
+ local x0,x1=60,180
+ local dx=(x1-x0)/(vt.player_count-1)
+ for pid=1,vt.player_count do
+  local p=create_player(pid,
+           vt.player_teams[pid])
+  p.pos=v2(flr(x0+(pid-1)*dx),vt.grnd_y)
+  p.y0=vt.grnd_y
+  add(vt.players,p)
+ end
  return vt
 end
 
@@ -1301,6 +1312,7 @@ function vt_leave(_ENV)
 end
 
 function vt_update(_ENV)
+ -- go back to main menu
  if btnp(0*8+4) or btnp(1*8+4)
  or btnp(2*8+4) or btnp(3*8+4) then
   vt:leave() -- TODO: call this automatically
@@ -1308,14 +1320,27 @@ function vt_update(_ENV)
    player_count=player_count,
   })
  end
+ -- bounce the winners
+ for _,p in ipairs(players) do
+  if p.team==winning_team then
+   p.pos.y=p.y0-
+           10*abs(sin(mode_frames/60))
+  end
+ end
 end
 
 function vt_draw(_ENV)
- cls(C_BLACK)
+ cls(C_DARKGREY)
  if winning_team==0 then
   print("It's a tie!",100,100,C_WHITE)
  else
   print("Team "..winning_team.." wins!",100,100,C_WHITE)
+ end
+ for _,p in ipairs(players) do
+  local srx=lerp(5,3,(p.y0-p.pos.y)/10)
+  local sry=lerp(2,1,(p.y0-p.pos.y)/10)
+  elli(p.pos.x+4,p.y0+7,srx,sry,C_DARKGREEN)
+  draw_player(p)
  end
 end
 -- <TILES>
