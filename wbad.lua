@@ -6,9 +6,6 @@
 -- version: 0.1
 -- script:  lua
 
---local _ENV = require 'std.strict'(_G)
---local undies=my_undefined_global_var
-
 ------ GLOBALS
 
 -- constants
@@ -100,33 +97,6 @@ function del(t,a)
    t[i]=t[#t]
    t[#t]=nil
    return r
-  end
- end
-end
-function pal(c0,c1,type)
- c0=c0 or -1
- c1=c1 or -1
- type=type or 0
- if c0<0 and c1<0 then
-  if type==0 then
-   for i=0,15 do
-    poke4(0x7FE0+i,i)
-   end
-  end
- else
-  c0=flr(c0%16)
-  if c1<0 then
-   c1=c0
-  end
-  c1=flr(c1%16)
-  if type==0 then
-   poke4(0x7FE0+c0,c1)
-  else
-   local stri
-   for i=0,5 do
-    stri=#__p8_pal-(c1+1)*6+i
-    poke4(0x3FC0*2+#__p8_pal-(c0+1)*6+i,tonumber(__p8_pal:sub(stri,stri),16))
-   end
   end
  end
 end
@@ -254,12 +224,6 @@ end
 function rects_overlap(a0,a1,b0,b1)
  return a1.x>=b0.x and a0.x<=b1.x
     and a1.y>=b0.y and a0.y<=b1.y
-end
-
--- return pixel x,y for a sprite.
--- useful for the ttri() function.
-function sprxy(sid)
- return 8*(sid%16),8*(sid//16)
 end
 
 -- print with a drop-shadow
