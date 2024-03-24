@@ -822,14 +822,22 @@ function cb_update(_ENV)
   local drain = p.running
     and K_ENERGY_RUN or K_ENERGY_WALK
   p.energy=max(0,p.energy-drain)
-  if p.energy==0 then
+  if p.energy==0 and not p.eliminated then
    p.eliminated=true
+   p.hflip=0
+   p.ammo=0 -- prevents throwing
+   p.windup=0 -- cancel existing throw
+   p.refill_cooldown=0
+   p.anims:to("idlelr") -- TODO: defeat
    -- TODO other time-of-elimination
    -- effects go here
   end
  end
  -- handle input & move players
  for _,p in ipairs(players) do
+  if p.eliminated then
+   goto player_update_end
+  end
   local pb0=8*(p.pid-1)
   p.move.y=(btn(pb0+0) and -1 or 0)+(btn(pb0+1) and 1 or 0)
   p.move.x=(btn(pb0+2) and -1 or 0)+(btn(pb0+3) and 1 or 0)
@@ -941,6 +949,7 @@ function cb_update(_ENV)
    })
    p.windup=0
   end
+  ::player_update_end::
  end
  -- update refill station pings
  local refill_pings2={}
@@ -953,6 +962,9 @@ function cb_update(_ENV)
  refill_pings=refill_pings2
  -- update refill stations
  for _,p in ipairs(players) do
+  if p.eliminated then
+   goto refill_update_end
+  end
   p.refill_cooldown=max(0,p.refill_cooldown-1)
   for _,r in ipairs(refills) do
    if p.refill_cooldown==0
@@ -969,6 +981,7 @@ function cb_update(_ENV)
     })
    end
   end
+  ::refill_update_end::
  end
  -- Check for end of match
  local live_teams={}
