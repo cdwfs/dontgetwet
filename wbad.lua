@@ -441,6 +441,7 @@ function BOOT()
   mode_enters={
   menu=menu_enter,
   combat=cb_enter,
+  victory=vt_enter,
  }
  game_mode="menu"
  next_mode,next_mode_enter_args=game_mode,nil
@@ -963,18 +964,17 @@ function cb_update(_ENV)
   winning_team=team
   live_team_count=live_team_count+1
  end
- if live_team_count==0 then
-  -- A tie! (highly improbable)
-  trace("It's a tie!")
+ if live_team_count<=1 then
+  local player_teams={}
+  for _,p in ipairs(players) do
+   add(player_teams,p.team)
+  end
   cb:leave() -- TODO: call this automatically
-  set_next_mode("menu",{
+  set_next_mode("victory",{
    player_count=all_player_count,
-  })
- elseif live_team_count==1 then
-  trace("Team "..winning_team.." won!")
-  cb:leave() -- TODO: call this automatically
-  set_next_mode("menu",{
-   player_count=all_player_count,
+   player_teams=player_teams,
+   winning_team=live_team_count>0
+    and winning_team or 0,
   })
  end
 end
@@ -1277,6 +1277,47 @@ function draw_player(player)
  end
 end
 
+---- victory
+
+vt={}
+function vt_enter(args)
+ sync(1|2|32,0)
+ camera(0,0)
+ cls(0)
+ vt=obj({
+  update=vt_update,
+  draw=vt_draw,
+  leave=vt_leave,
+  player_count=args.player_count,
+  player_teams=args.player_teams,
+  winning_team=args.winning_team,
+ })
+ return vt
+end
+
+function vt_leave(_ENV)
+ clip()
+ music()
+end
+
+function vt_update(_ENV)
+ if btnp(0*8+4) or btnp(1*8+4)
+ or btnp(2*8+4) or btnp(3*8+4) then
+  vt:leave() -- TODO: call this automatically
+  set_next_mode("menu",{
+   player_count=player_count,
+  })
+ end
+end
+
+function vt_draw(_ENV)
+ cls(C_BLACK)
+ if winning_team==0 then
+  print("It's a tie!",100,100,C_WHITE)
+ else
+  print("Team "..winning_team.." wins!",100,100,C_WHITE)
+ end
+end
 -- <TILES>
 -- 001:001122330511223344556677445566778899aabb8899aabbccddeeffccddeeff
 -- 002:111111111b1111b1111a111111111111111111b1111111111b111b1111111111
