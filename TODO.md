@@ -4,7 +4,6 @@ TODO:
 - credits screen
 - time limit (either explicit, or battle-royale-style arena shrinking)
 - bugs
-  - flip hat direction for upward-facing kid. Or delete it.
   - add a delay & prompt to victory screen
   - remove "kill everyone but player one" hack
   - players should collide with other players
@@ -63,3 +62,4 @@ X AI [defer to quadplay]
 * eliminated players can still move/throw/refill/etc.
 * add sprite flag for "blocks balloons", separate from "blocks movement".
 * add fade-to-black helper, and fade between modes during transitions
+* flip hat direction for upward-facing kid. Or delete it.
