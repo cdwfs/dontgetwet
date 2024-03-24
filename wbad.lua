@@ -711,10 +711,10 @@ function cb_init_players(cb)
   local team=pid -- TODO: plumb this in from menu
   local p=cb_create_player(pid,team)
   -- choose a spawn tile
-  --local ispawn=1+flr(rnd(#cb.player_spawns))
-  local ispawn=pid
+  local ispawn=math.random(#cb.player_spawns)
   p.fpos=v2scl(
    v2cpy(cb.player_spawns[ispawn]),8)
+  table.remove(cb.player_spawns,ispawn)
   p.pos=v2flr(v2add(p.fpos,v2(0.5,0.5)))
   local pclip=cb.clips[pid]
   p.vpcenter=v2(
