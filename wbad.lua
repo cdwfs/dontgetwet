@@ -233,6 +233,24 @@ function dsprint(msg,x,y,c,cs)
  print(msg,x,y,c)
 end
 
+-- palette fade
+original_palette={} -- 48 RGB bytes
+function fade_init_palette()
+ for i=0,47 do
+  original_palette[i]=peek(0x3FC0+i)
+ end
+end
+-- Sets the palette to (1-t)*original
+-- t=0: master palette (no change)
+-- t=1: fully black
+function fade_black(t)
+ local s=clamp(1-t,0,1)
+ for i=0,47 do
+  poke(0x3FC0+i,original_palette[i]*s//1)
+ end
+end
+
+
 -- creates an animation from a
 -- list of values and frame counts.
 -- one anim per running instance (all frames & counts will be stored per-instance)
@@ -469,11 +487,21 @@ function menu_enter(args)
  camera(0,0)
  cls(0)
  music(MUS_MENU)
+ -- fade in from black
+ fade_init_palette()
+ fade_black(1)
+ add_frame_hook(
+  function(nleft,ntotal)
+   fade_black(nleft/ntotal)
+  end,
+  function() fade_black(0) end,
+  30)
  mm=obj({
   update=menu_update,
   draw=menu_draw,
   leave=menu_leave,
   player_count=args.player_count or 2, -- must be 2-4
+  ignore_input=false,
  })
  return mm
 end
@@ -485,16 +513,27 @@ end
 
 function menu_update(_ENV)
  -- input
- if btnp(2) then
-  player_count=(player_count-2+2)%3+2
- elseif btnp(3) then
-  player_count=(player_count-2+1)%3+2
- end
- if btnp(4) then
-  mm:leave() -- TODO call this automatically
-  set_next_mode("combat",{
-   player_count=player_count,
-  })
+ if not ignore_input then
+  if btnp(2) then
+   player_count=(player_count-2+2)%3+2
+  elseif btnp(3) then
+   player_count=(player_count-2+1)%3+2
+  end
+  if btnp(4) then
+   ignore_input=true
+   -- fade to black & advance to next mode
+   add_frame_hook(
+    function(nleft,ntotal)
+     fade_black((ntotal-nleft)/ntotal)
+    end,
+    function()
+     mm:leave() -- TODO call this automatically
+     set_next_mode("combat",{
+      player_count=player_count,
+     })
+    end,
+    60)
+  end
  end
 end
 
@@ -510,6 +549,15 @@ cb={}
 
 function cb_enter(args)
  sync(1|2|4|32,0)
+ fade_init_palette()
+ -- fade in from black
+ fade_black(1)
+ add_frame_hook(
+  function(nleft,ntotal)
+   fade_black(nleft/ntotal)
+  end,
+  function() fade_black(0) end,
+  60)
  camera(0,0)
  cb=obj({
   update=cb_update,
@@ -529,6 +577,7 @@ function cb_enter(args)
   swings={},
   elephants={},
   bushes={},
+  end_hook=nil,
  })
  -- adjust clip rects based on player count
  local pid_clips={
@@ -950,30 +999,40 @@ function cb_update(_ENV)
   ::refill_update_end::
  end
  -- Check for end of match
- local live_teams={}
- for _,p in ipairs(players) do
-  if not p.eliminated then
-   live_teams[p.team]=true
-  end
- end
- local winning_team=nil
- local live_team_count=0
- for team,_ in pairs(live_teams) do
-  winning_team=team
-  live_team_count=live_team_count+1
- end
- if live_team_count<=1 then
-  local player_teams={}
+ if not end_hook then
+  local live_teams={}
   for _,p in ipairs(players) do
-   add(player_teams,p.team)
+   if not p.eliminated then
+    live_teams[p.team]=true
+   end
   end
-  cb:leave() -- TODO: call this automatically
-  set_next_mode("victory",{
-   player_count=all_player_count,
-   player_teams=player_teams,
-   winning_team=live_team_count>0
-    and winning_team or 0,
-  })
+  local winning_team=nil
+  local live_team_count=0
+  for team,_ in pairs(live_teams) do
+   winning_team=team
+   live_team_count=live_team_count+1
+  end
+  if live_team_count<=1 then
+   local player_teams={}
+   for _,p in ipairs(players) do
+    add(player_teams,p.team)
+   end
+   -- fade to black & advance to next mode
+   end_hook=add_frame_hook(
+    function(nleft,ntotal)
+     fade_black((ntotal-nleft)/ntotal)
+    end,
+    function()
+     cb:leave() -- TODO call this automatically
+     set_next_mode("victory",{
+      player_count=all_player_count,
+      player_teams=player_teams,
+      winning_team=live_team_count>0
+       and winning_team or 0,
+     })
+    end,
+    60)
+  end
  end
 end
 
@@ -1280,6 +1339,15 @@ end
 vt={}
 function vt_enter(args)
  sync(1|2|32,0)
+ -- fade in from black
+ fade_init_palette()
+ fade_black(1)
+ add_frame_hook(
+  function(nleft,ntotal)
+   fade_black(nleft/ntotal)
+  end,
+  function() fade_black(0) end,
+  30)
  camera(0,0)
  clip()
  vt=obj({

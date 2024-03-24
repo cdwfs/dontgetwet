@@ -29,7 +29,6 @@ TODO:
   - victory
 - helpers
   - formalize mode:leave() method
-  - bring over the fade() helper function, if needed
   - vararg print() helpers
   - implement ttri()-based rspr() if I need it
 - art
@@ -63,3 +62,4 @@ X AI [defer to quadplay]
 * implement running
 * eliminated players can still move/throw/refill/etc.
 * add sprite flag for "blocks balloons", separate from "blocks movement".
+* add fade-to-black helper, and fade between modes during transitions
