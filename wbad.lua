@@ -22,7 +22,7 @@ K_MAX_THROW=70
 K_BALLOON_RADIUS=2
 K_SPLASH_DIST=14
 -- palette color indices
-PID_COLORS={2,10,4,12}
+TEAM_COLORS={2,10,4,12}
 C_WHITE=8
 C_BLACK=0
 C_DARKGREY=3
@@ -645,7 +645,7 @@ function cb_enter(args)
  return cb
 end
 
-function cb_create_player(pid)
+function cb_create_player(pid,team)
  return {
   --[[
   notes on player coordinates:
@@ -685,8 +685,9 @@ function cb_create_player(pid)
   dir=v2(1,0),
   vpcenter=v2(0,0),
   focus=v2(0,0),
-  color=PID_COLORS[pid],
+  color=TEAM_COLORS[team],
   pid=pid,
+  team=team,
   speed=0, -- how far to move in current dir per frame
   health=K_MAX_HEALTH,
   ammo=K_MAX_AMMO,
@@ -706,7 +707,8 @@ function cb_create_player(pid)
 end
 function cb_init_players(cb)
  for pid=1,cb.all_player_count do
-  local p=cb_create_player(pid)
+  local team=pid -- TODO: plumb this in from menu
+  local p=cb_create_player(pid,team)
   -- choose a spawn tile
   --local ispawn=1+flr(rnd(#cb.player_spawns))
   local ispawn=pid
@@ -789,9 +791,8 @@ function cb_update(_ENV)
      pos=v2cpy(b.pos),
      vel=v2scl(v2rnd(),0.5+rnd(1)),
      ttl=disth+rnd()*K_SPLASH_DIST,
-     color=i<10 and PID_COLORS[b.pid]
-                 or C_LIGHTBLUE,
-     pid=b.pid,
+     color=i<10 and b.color or C_LIGHTBLUE,
+     team=b.team,
     })
    end
   else
@@ -909,6 +910,7 @@ function cb_update(_ENV)
     t=0,
     t1=40*1,
     pid=p.pid,
+    team=p.team,
     color=p.color,
     r=K_BALLOON_RADIUS,
    })
