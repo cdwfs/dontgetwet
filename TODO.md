@@ -1,15 +1,43 @@
 TODO:
-- Player visibility
-  - Players are invisible in grass in other viewports. Dithered on their own.
 - Player movement
   - implement running
-  - draw differently in bushes
+  - add sprite flag for "blocks balloons", separate from "blocks movement".
+- main menu
+- help screen
+- credits screen
+- bugs
+  - flip hat direction for upward-facing kid. Or delete it.
+  - eliminated players can still move/throw/refill/etc.
+  - add a delay & prompt to victory screen
+  - time limit (either explicit, or battle-royale-style arena shrinking)
+- sound
+  - menu select
+  - menu confirm
+  - walk loop
+  - run loop
+  - windup
+  - throw
+  - splash (terrain)
+  - splash (player)
+  - refill
+  - refill warning
+  - player eliminated
+  - victory
+- music
+  - menu
+  - in-game
+  - victory
 - helpers
   - formalize mode:leave() method
   - bring over the fade() helper function, if needed
   - vararg print() helpers
   - implement ttri()-based rspr() if I need it
-- bugs
+- art
+  - winning player animation
+  - losing player animation
+  - grass variations
+  - streams/general-purpose ponds
+  
 DONE:
 * strip invisibrawl arrows/blood code
 * refactor init_player
@@ -30,3 +58,5 @@ DONE:
   * implement pings when players recharge
 * don't set hflip when player is facing up. Just flip the sprite in the sheet.
 * 2nd run doesn't work, the map has already been modified.
+X Players are invisible in grass in other viewports. Dithered on their own. [nah, just have tall grass obscure them]
+X AI [defer to quadplay]
