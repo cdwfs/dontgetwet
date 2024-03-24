@@ -1213,7 +1213,7 @@ function cb_draw(_ENV)
   if p.dead then
    rect(p.vpcenter.x-38,p.vpcenter.y-20,75,9,C_BLACK)
    rectb(p.vpcenter.x-38,p.vpcenter.y-20,75,9,p.color)
-   local w=print("KILLED BY PX",p.vpcenter.x-36,p.vpcenter.y-18,p.color,true)
+   local w=print("ELIMINATED!",p.vpcenter.x-36,p.vpcenter.y-18,p.color,true)
   end
   -- draw viewport border.
   rectb(pclip[1],pclip[2],pclip[3],pclip[4],p.color)
