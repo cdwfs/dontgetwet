@@ -23,6 +23,7 @@ K_BALLOON_RADIUS=2
 K_SPLASH_DIST=14
 -- palette color indices
 TEAM_COLORS={2,10,4,12}
+TEAM_NAMES={"Purple","Green","Blue","Orange"}
 C_WHITE=8
 C_BLACK=0
 C_DARKGREY=3
@@ -259,11 +260,6 @@ end
 function dsprint(msg,x,y,c,cs)
  print(msg,x-1,y+1,cs)
  print(msg,x,y,c)
-end
-
--- print centered on screen
-function cprint(msg,y,c)
- print(msg,64-2*#msg,y,c)
 end
 
 -- creates an animation from a
@@ -736,6 +732,16 @@ local function canwalk(px,py)
 end
 
 function cb_update(_ENV)
+ -- hack: kill all other players to
+ -- advance to victory
+ if btnp(7) then
+  for _,p in ipairs(players) do
+   if p.pid>1 then
+    p.health=0
+    p.dead=true
+   end
+  end
+ end
  -- update water particles
  local wparts2={}
  for _,wp in ipairs(wparts) do
@@ -1331,11 +1337,12 @@ end
 
 function vt_draw(_ENV)
  cls(C_DARKGREY)
- if winning_team==0 then
-  print("It's a tie!",100,100,C_WHITE)
- else
-  print("Team "..winning_team.." wins!",100,100,C_WHITE)
- end
+ local msg=(winning_team==0)
+   and "It's a tie!"
+    or ""..TEAM_NAMES[winning_team].." Team wins!"
+ local msgw=print(msg,0,200)
+ dsprint(msg,120-msgw/2,100,
+  TEAM_COLORS[winning_team],C_BLACK)
  for _,p in ipairs(players) do
   local srx=lerp(5,3,(p.y0-p.pos.y)/10)
   local sry=lerp(2,1,(p.y0-p.pos.y)/10)
