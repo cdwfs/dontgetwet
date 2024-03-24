@@ -445,7 +445,8 @@ function BOOT()
  game_mode="menu"
  next_mode,next_mode_enter_args=game_mode,nil
  cls(0)
- mode_obj=mode_enters[game_mode]()
+ local mode_args={}
+ mode_obj=mode_enters[game_mode](mode_args)
  mode_frames=0
  game_frames=0
 end
@@ -495,7 +496,7 @@ end
 
 mm={}
 
-function menu_enter()
+function menu_enter(args)
  sync(1|2|32,1)
  camera(0,0)
  cls(0)
@@ -504,7 +505,7 @@ function menu_enter()
   update=menu_update,
   draw=menu_draw,
   leave=menu_leave,
-  player_count=2, -- must be 2-4
+  player_count=args.player_count or 2, -- must be 2-4
  })
  return mm
 end
@@ -807,6 +808,8 @@ function cb_update(_ENV)
   p.health=max(0,p.health-0.02)
   if p.health==0 then
    p.dead=true
+   -- TODO other time-of-death effects
+   -- go here
   end
  end
  -- handle input & move players
@@ -818,6 +821,8 @@ function cb_update(_ENV)
    and max(p.speed-0.1,0)
    or  min(p.speed+0.1,0.6)
   -- TODO: walk one pixel at a time
+  -- to make sure we don't get stuck
+  -- in an obstacle
   local s=p.speed
   if p.move.y<0 then -- up
    if  canwalk(p.fpos.x+1,p.fpos.y-s)
@@ -944,6 +949,33 @@ function cb_update(_ENV)
     })
    end
   end
+ end
+ -- Check for end of match
+ local live_teams={}
+ for _,p in ipairs(players) do
+  if not p.dead then
+   live_teams[p.team]=true
+  end
+ end
+ local winning_team=nil
+ local live_team_count=0
+ for team,_ in pairs(live_teams) do
+  winning_team=team
+  live_team_count=live_team_count+1
+ end
+ if live_team_count==0 then
+  -- A tie! (highly improbable)
+  trace("It's a tie!")
+  cb:leave() -- TODO: call this automatically
+  set_next_mode("menu",{
+   player_count=all_player_count,
+  })
+ elseif live_team_count==1 then
+  trace("Team "..winning_team.." won!")
+  cb:leave() -- TODO: call this automatically
+  set_next_mode("menu",{
+   player_count=all_player_count,
+  })
  end
 end
 
