@@ -1,6 +1,6 @@
 -- title:   Water Balloons At Dawn
 -- author:  Bitterly Indifferent Games
--- desc:    Stealth-focused water-balloon fight game for 2-4 players.
+-- desc:    A playground water-balloon fight for 2-4 players.
 -- site:    github.com/cdwfs/wbad
 -- license: Creative Commons Zero v1.0 Universal
 -- version: 0.1
@@ -12,7 +12,10 @@
 ------ GLOBALS
 
 -- constants
-K_MAX_HEALTH=100
+K_MAX_ENERGY=100
+K_ENERGY_HIT=25
+K_ENERGY_SPLASH=10
+K_ENERGY_WARNING=0.3*K_MAX_ENERGY
 K_MAX_AMMO=5
 K_MAX_PING_RADIUS=600
 K_REFILL_COOLDOWN=60*5
@@ -687,10 +690,10 @@ function create_player(pid,team)
   pid=pid,
   team=team,
   speed=0, -- how far to move in current dir per frame
-  health=K_MAX_HEALTH,
+  energy=K_MAX_ENERGY,
   ammo=K_MAX_AMMO,
   refill_cooldown=0,
-  dead=false,
+  eliminated=false,
   windup=0,
   anims=animgraph({
    idlelr={anim({258},8),"idlelr"},
@@ -737,8 +740,8 @@ function cb_update(_ENV)
  if btnp(7) then
   for _,p in ipairs(players) do
    if p.pid>1 then
-    p.health=0
-    p.dead=true
+    p.energy=0
+    p.eliminated=true
    end
   end
  end
@@ -776,8 +779,7 @@ function cb_update(_ENV)
    and b.pos.x<=p.pos.x+7+b.r
    and b.pos.y<=p.pos.y+7+b.r then
     pop=true
-    -- direct hits do extra damage
-    p.health=max(0,p.health-25)
+    p.energy=max(0,p.energy-K_ENERGY_HIT)
     goto end_balloon_update
    end
   end
@@ -790,7 +792,7 @@ function cb_update(_ENV)
     local pc=v2add(p.pos,v2(4,4))
     if b.pid~=p.pid
     and v2dstsq(pc,b.pos)<splash_dist2 then
-     p.health=max(0,p.health-25)
+     p.energy=max(0,p.energy-K_ENERGY_SPLASH)
     end
    end
    local disth=K_SPLASH_DIST/2
@@ -809,14 +811,14 @@ function cb_update(_ENV)
   end
  end
  balloons=balloons2
- -- decrease health of all players
- -- and check for death
+ -- decrease energy of all players
+ -- and check for elimination
  for _,p in ipairs(players) do
   p.health=max(0,p.health-0.02)
-  if p.health==0 then
-   p.dead=true
-   -- TODO other time-of-death effects
-   -- go here
+  if p.energy==0 then
+   p.eliminated=true
+   -- TODO other time-of-elimination
+   -- effects go here
   end
  end
  -- handle input & move players
@@ -947,7 +949,7 @@ function cb_update(_ENV)
     p.pos,v2add(p.pos,v2(7,7)),
     r.pos,v2add(r.pos,v2(7,7))) then
     -- TODO play sound
-    p.health=K_MAX_HEALTH
+    p.energy=K_MAX_ENERGY
     p.ammo=K_MAX_AMMO
     p.refill_cooldown=K_REFILL_COOLDOWN
     add(refill_pings,{
@@ -960,7 +962,7 @@ function cb_update(_ENV)
  -- Check for end of match
  local live_teams={}
  for _,p in ipairs(players) do
-  if not p.dead then
+  if not p.eliminated then
    live_teams[p.team]=true
   end
  end
@@ -1179,17 +1181,17 @@ function cb_draw(_ENV)
   end
   -- restore screen-space camera
   camera(0,0)
-  -- draw player health and ammo bars
+  -- draw player energy and ammo bars
   rectb(pclip[1]+2,pclip[2]+2,
         32,4,K_WHITE)
   rect( pclip[1]+3,pclip[2]+3,
-        30*p.health/K_MAX_HEALTH,2,C_RED)
+        30*p.energy/K_MAX_ENERGY,2,C_RED)
   for ib=1,p.ammo do
    circ(pclip[1]+34+ib*6,pclip[2]+4,2,p.color)
    circb(pclip[1]+34+ib*6,pclip[2]+4,2,C_BLACK)
   end
-  -- for low-health/ammo players, draw "refill" prompt
-  if p.health<0.3*K_MAX_HEALTH
+  -- for low-energy/ammo players, draw "refill" prompt
+  if p.energy<K_ENERGY_WARNING
   or p.ammo==0 then
    dsprint("REFILL!",
          p.vpcenter.x-12,p.vpcenter.y+20,
@@ -1216,7 +1218,7 @@ function cb_draw(_ENV)
    end
   end
   -- draw "game over" message for eliminated players
-  if p.dead then
+  if p.eliminated then
    rect(p.vpcenter.x-38,p.vpcenter.y-20,75,9,C_BLACK)
    rectb(p.vpcenter.x-38,p.vpcenter.y-20,75,9,p.color)
    local w=print("ELIMINATED!",p.vpcenter.x-36,p.vpcenter.y-18,p.color,true)
