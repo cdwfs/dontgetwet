@@ -1,15 +1,15 @@
 TODO:
-- Player movement
-  - implement running
-  - add sprite flag for "blocks balloons", separate from "blocks movement".
 - main menu
 - help screen
 - credits screen
+- time limit (either explicit, or battle-royale-style arena shrinking)
 - bugs
   - flip hat direction for upward-facing kid. Or delete it.
-  - eliminated players can still move/throw/refill/etc.
   - add a delay & prompt to victory screen
-  - time limit (either explicit, or battle-royale-style arena shrinking)
+  - remove "kill everyone but player one" hack
+  - players should collide with other players
+  - bushes block balloons but not movement? (you'd still get splash damage)
+  - sparkles on refill stations to make them stand out more
 - sound
   - menu select
   - menu confirm
@@ -60,3 +60,6 @@ DONE:
 * 2nd run doesn't work, the map has already been modified.
 X Players are invisible in grass in other viewports. Dithered on their own. [nah, just have tall grass obscure them]
 X AI [defer to quadplay]
+* implement running
+* eliminated players can still move/throw/refill/etc.
+* add sprite flag for "blocks balloons", separate from "blocks movement".
