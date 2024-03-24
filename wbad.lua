@@ -1185,9 +1185,9 @@ function cb_draw(_ENV)
   -- for low-health/ammo players, draw "refill" prompt
   if p.health<0.3*K_MAX_HEALTH
   or p.ammo==0 then
-   print("REFILL!",
-         p.vpcenter.x-12,p.vpcenter.y-4,
-         C_WHITE,true)
+   dsprint("REFILL!",
+         p.vpcenter.x-12,p.vpcenter.y+20,
+         C_WHITE,C_DARKGREY)
    local pc=p.focus
    local closest=v2(math.huge,math.huge)
    local closest_d2=v2dstsq(pc,closest)
