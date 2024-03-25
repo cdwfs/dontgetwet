@@ -1,14 +1,4 @@
 TODO:
-- main menu
-- help screen
-- credits screen
-- time limit (either explicit, or battle-royale-style arena shrinking)
-- bugs
-  - add a delay & prompt to victory screen
-  - remove "kill everyone but player one" hack
-  - players should collide with other players
-  - bushes block balloons but not movement? (you'd still get splash damage)
-  - sparkles on refill stations to make them stand out more
 - sound
   - menu select
   - menu confirm
@@ -26,13 +16,21 @@ TODO:
   - menu
   - in-game
   - victory
-- helpers
-  - vararg print() helpers
+- main menu
+- help screen
+- credits screen
+- time limit (either explicit, or battle-royale-style arena shrinking)
+- bugs
+  - add a delay & prompt to victory screen
+  - remove "kill everyone but player one" hack
+  - players should collide with other players
+  - bushes block balloons but not movement? (you'd still get splash damage)
 - art
   - winning player animation
   - losing player animation
   - grass variations
   - streams/general-purpose ponds
+  - sparkles on refill stations to make them stand out more
   
 DONE:
 * strip invisibrawl arrows/blood code
@@ -62,3 +60,4 @@ X AI [defer to quadplay]
 * add fade-to-black helper, and fade between modes during transitions
 * flip hat direction for upward-facing kid. Or delete it.
 * call mode:leave() automatically
+* vararg dsprint()

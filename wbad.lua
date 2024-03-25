@@ -227,10 +227,9 @@ function rects_overlap(a0,a1,b0,b1)
 end
 
 -- print with a drop-shadow
--- TODO: use ... and unpack(arg) to pass extra TIC80 args to print()
-function dsprint(msg,x,y,c,cs)
- print(msg,x-1,y+1,cs)
- print(msg,x,y,c)
+function dsprint(msg,x,y,c,cs,...)
+ print(msg,x-1,y+1,cs,...)
+ print(msg,x,y,c,...)
 end
 
 -- palette fade
