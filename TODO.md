@@ -61,3 +61,4 @@ X AI [defer to quadplay]
 * flip hat direction for upward-facing kid. Or delete it.
 * call mode:leave() automatically
 * vararg dsprint()
+* paths
