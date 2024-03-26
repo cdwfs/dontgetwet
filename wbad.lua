@@ -1447,12 +1447,14 @@ end
 function vt_draw(_ENV)
  cls(C_DARKGREY)
  -- draw message
- local msg=(winning_team==0)
-   and "It's a tie!"
-    or ""..TEAM_NAMES[winning_team].." Team wins!"
+ local msgc=(winning_team>0)
+   and TEAM_COLORS[winning_team]
+    or C_WHITE
+ local msg=(winning_team>0)
+   and ""..TEAM_NAMES[winning_team].." Team wins!"
+    or "It's a tie!"
  local msgw=print(msg,0,200)
- dsprint(msg,120-msgw/2,100,
-  TEAM_COLORS[winning_team],C_BLACK)
+ dsprint(msg,120-msgw/2,100,msgc,C_BLACK)
  -- draw players
  for _,p in ipairs(players) do
   if p.team==winning_team then
