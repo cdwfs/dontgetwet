@@ -25,12 +25,21 @@ TODO:
   - remove "kill everyone but player one" hack
   - players should collide with other players
   - bushes block balloons but not movement? (you'd still get splash damage)
+  - dark green drop-shadows don't look right over paths. avoid placing pushes and trees to the left/right of paths? Crazy shadow-clipping?
+  - drop-shadows draw over neighboring walls. THAT should be solved with clipping.
+  - don't allow running with windup, to make chases more interesting.
 - art
   - winning player animation
   - losing player animation
   - grass variations
   - streams/general-purpose ponds
   - sparkles on refill stations to make them stand out more
+  - signs
+  - up & down leg animations are currently the same. Differentiate? Add a tshirt logo?
+- polish
+  - mode transition: dozens of balloons fly at the screen and explode in splashes, which wash away to reveal the new mode
+  - victory screen: a steady rain of the winning team's balloons falling and exploding on losing players
+  
   
 DONE:
 * strip invisibrawl arrows/blood code
@@ -62,3 +71,6 @@ X AI [defer to quadplay]
 * call mode:leave() automatically
 * vararg dsprint()
 * paths
+* replace color 9 with dark brown (suitable for hair, skin, dirt, wood, etc.)
+* decouple leg animations from face sprites. Add multiple variations of face, with skin/hair palette swaps.
+* replace orange in title screen palette with 0xFFF9
