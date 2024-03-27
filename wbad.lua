@@ -1107,7 +1107,7 @@ function cb_draw(_ENV)
        v2add(p2.pos,v2(-8,-8)),
        v2add(p2.pos,v2(8,8))) then
     elli(p2.pos.x+4,p2.pos.y+7,
-         5,2,C_DARKGREEN)
+         5,2,C_DARKGREY)
     add(draws,{
      order=p2.pos.y, order2=p2.pos.x,
      f=draw_player, args={p2}
@@ -1135,7 +1135,7 @@ function cb_draw(_ENV)
    if rects_overlap(cull0,cull1,
        v2sub(b.pos,v2(b.r+2,b.r+2)),
        v2add(b.pos,v2(b.r+2,b.r+8))) then
-    elli(b.pos.x,b.pos.y+2,b.r,2,C_DARKGREEN)
+    elli(b.pos.x,b.pos.y+2,b.r,2,C_DARKGREY)
     add(draws,{
      order=b.pos.y, order2=b.pos.x,
      f=draw_balloon, args={
@@ -1150,7 +1150,7 @@ function cb_draw(_ENV)
    if rects_overlap(cull0,cull1,
        t.bounds0, t.bounds1) then
     elli(t.pos.x+4, t.pos.y+7,
-     10,3,C_DARKGREEN)
+     10,3,C_DARKGREY)
     add(draws,{
      order=t.pos.y+1, order2=t.pos.x,
      f=function(t)
@@ -1165,7 +1165,7 @@ function cb_draw(_ENV)
    if rects_overlap(cull0,cull1,
        b.bounds0, b.bounds1) then
     elli(b.pos.x,b.pos.y+7,
-         8,2,C_DARKGREEN)
+         8,2,C_DARKGREY)
     add(draws,{
      order=b.pos.y, order2=b.pos.x,
      f=function(b)
@@ -1180,9 +1180,9 @@ function cb_draw(_ENV)
    if rects_overlap(cull0,cull1,
        m.bounds0, m.bounds1) then
     line(m.pos.x,m.pos.y+7,
-         m.pos.x+23,m.pos.y+7,C_DARKGREEN)
+         m.pos.x+23,m.pos.y+7,C_DARKGREY)
     line(m.pos.x+6,m.pos.y+5,
-         m.pos.x+17,m.pos.y+5,C_DARKGREEN)
+         m.pos.x+17,m.pos.y+5,C_DARKGREY)
     add(draws,{
      order=m.pos.y, order2=m.pos.x,
      f=function(m)
@@ -1197,9 +1197,9 @@ function cb_draw(_ENV)
    if rects_overlap(cull0,cull1,
        s.bounds0, s.bounds1) then
     line(s.pos.x+1,s.pos.y+5,
-         s.pos.x+26,s.pos.y+5,C_DARKGREEN)
-    elli(s.pos.x+10,s.pos.y+6,4,1,C_DARKGREEN)
-    elli(s.pos.x+21,s.pos.y+6,4,1,C_DARKGREEN)
+         s.pos.x+26,s.pos.y+5,C_DARKGREY)
+    elli(s.pos.x+10,s.pos.y+6,4,1,C_DARKGREY)
+    elli(s.pos.x+21,s.pos.y+6,4,1,C_DARKGREY)
     add(draws,{
      order=s.pos.y, order2=s.pos.x,
      f=function(s)
@@ -1213,7 +1213,7 @@ function cb_draw(_ENV)
   for _,e in ipairs(elephants) do
    if rects_overlap(cull0,cull1,
        e.bounds0,e.bounds1) then
-    elli(e.pos.x+4,e.pos.y+7,7,2,C_DARKGREEN)
+    elli(e.pos.x+4,e.pos.y+7,7,2,C_DARKGREY)
     add(draws,{
      order=e.pos.y, order2=e.pos.x,
      f=function(e)
@@ -1241,7 +1241,7 @@ function cb_draw(_ENV)
   for _,r in ipairs(refills) do
    if rects_overlap(cull0,cull1,
        r.bounds0,r.bounds1) then
-    elli(r.pos.x+4,r.pos.y+7,6,2,C_DARKGREEN)
+    elli(r.pos.x+4,r.pos.y+7,6,2,C_DARKGREY)
     add(draws,{
      order=r.pos.y, order2=r.pos.x,
      f=function(r,cooldown)
@@ -1497,7 +1497,7 @@ function vt_update(_ENV)
 end
 
 function vt_draw(_ENV)
- cls(C_DARKGREY)
+ cls(C_BLACK)
  -- draw message
  local msgc=(winning_team>0)
    and TEAM_COLORS[winning_team]
@@ -1512,7 +1512,7 @@ function vt_draw(_ENV)
   if p.team==winning_team then
    local srx=lerp(5,3,(p.y0-p.pos.y)/10)
    local sry=lerp(2,1,(p.y0-p.pos.y)/10)
-   elli(p.pos.x+4,p.y0+7,srx,sry,C_DARKGREEN)
+   elli(p.pos.x+4,p.y0+7,srx,sry,C_DARKGREY)
   else
    elli(p.pos.x+4,p.y0+7,6,3,C_LIGHTBLUE)
   end
