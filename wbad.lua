@@ -1079,8 +1079,7 @@ function cb_update(_ENV)
     end,
     function()
      set_next_mode("victory",{
-      player_count=all_player_count,
-      player_teams=player_teams,
+      players=players,
       winning_team=live_team_count>0
        and winning_team or 0,
      })
@@ -1455,25 +1454,20 @@ function vt_enter(args)
   update=vt_update,
   draw=vt_draw,
   leave=vt_leave,
-  player_count=args.player_count,
-  player_teams=args.player_teams,
+  players=args.players,
   winning_team=args.winning_team,
-  players={},
   grnd_y=80,
   drop_spawns={},
   drops={},
  })
- -- create players evenly spaced
+ -- place players
  local x0,x1=60,180
- local dx=(x1-x0)/(vt.player_count-1)
- for pid=1,vt.player_count do
-  local p=create_player(pid,
-           vt.player_teams[pid])
-  p.pos=v2(flr(x0+(pid-1)*dx-4),
+ local dx=(x1-x0)/(#vt.players-1)
+ for _,p in ipairs(vt.players) do
+  p.pos=v2(flr(x0+(p.pid-1)*dx-4),
            vt.grnd_y)
   p.y0=vt.grnd_y
-  add(vt.players,p)
-  p.anims:nextv()
+  p.anims:to("idlelr")
  end
  -- Make a list of all pixels in a
  -- sprite that are not transparent.
@@ -1505,7 +1499,7 @@ function vt_update(_ENV)
  if btnp(0*8+4) or btnp(1*8+4)
  or btnp(2*8+4) or btnp(3*8+4) then
   set_next_mode("menu",{
-   player_count=player_count,
+   player_count=#players,
   })
  end
  -- update water drops

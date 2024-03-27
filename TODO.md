@@ -34,7 +34,6 @@ TODO:
   - grass variations
   - streams/general-purpose ponds
   - sparkles on refill stations to make them stand out more
-  - signs
   - up & down leg animations are currently the same. Differentiate? Add a tshirt logo?
 - polish
   - mode transition: dozens of balloons fly at the screen and explode in splashes, which wash away to reveal the new mode
@@ -74,3 +73,5 @@ X AI [defer to quadplay]
 * replace color 9 with dark brown (suitable for hair, skin, dirt, wood, etc.)
 * decouple leg animations from face sprites. Add multiple variations of face, with skin/hair palette swaps.
 * replace orange in title screen palette with 0xFFF9
+* signs
+* forward character face/skin/hair from game to victory to make sure they look the same
