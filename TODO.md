@@ -1,7 +1,5 @@
 TODO:
 - sound
-  - menu select
-  - menu confirm
   - walk loop
   - run loop
   - windup
@@ -31,7 +29,6 @@ TODO:
 - art
   - winning player animation
   - losing player animation
-  - grass variations
   - streams/general-purpose ponds
   - sparkles on refill stations to make them stand out more
   - up & down leg animations are currently the same. Differentiate? Add a tshirt logo?
@@ -75,3 +72,5 @@ X AI [defer to quadplay]
 * replace orange in title screen palette with 0xFFF9
 * signs
 * forward character face/skin/hair from game to victory to make sure they look the same
+* grass variations
+* main menu sounds
