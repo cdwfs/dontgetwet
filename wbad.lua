@@ -32,10 +32,12 @@ TEAM_NAMES={"Pink","Orange","Blue","Green"}
 C_WHITE=8
 C_BLACK=0
 C_DARKGREY=3
+C_LIGHTGREY=7
 C_DARKGREEN=11
 C_LIGHTBLUE=13
 C_RED=5
 C_TRANSPARENT=5 -- by default
+C_YELLOW=15
 -- sounds
 SFX_STEP=1
 SFX_MENU_CONFIRM=18
@@ -441,6 +443,9 @@ function BOOT()
   trace("**BOOT** "..tstamp()//1000)
   mode_enters={
   menu=menu_enter,
+  help=help_enter,
+  credits=cred_enter,
+  teams=team_enter,
   combat=cb_enter,
   victory=vt_enter,
  }
@@ -519,6 +524,7 @@ function menu_enter(args)
   leave=menu_leave,
   player_count=args.player_count or 2, -- must be 2-4
   ignore_input=false,
+  selected=0,
  })
  return mm
 end
@@ -531,12 +537,16 @@ end
 function menu_update(_ENV)
  -- input
  if not ignore_input then
-  if btnp(2) then
+  if selected==0 and btnp(2) then
    sfx(SFX_MENU_MOVE,"D-5",-1,1)
    player_count=(player_count-2+2)%3+2
-  elseif btnp(3) then
+  elseif selected==0 and btnp(3) then
    sfx(SFX_MENU_MOVE,"D-5",-1,1)
    player_count=(player_count-2+1)%3+2
+  elseif btnp(0) then
+   selected=(selected+2)%3
+  elseif btnp(1) then
+   selected=(selected+1)%3
   end
   if btnp(4) then
    sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
@@ -547,11 +557,17 @@ function menu_update(_ENV)
      fade_black((ntotal-nleft)/ntotal)
     end,
     function()
-     set_next_mode("combat",{
-      player_count=player_count,
-     })
+     if selected==0 then
+      set_next_mode("combat",{
+       player_count=player_count,
+      })
+     elseif selected==1 then
+      set_next_mode("help",{})
+     elseif selected==2 then
+      set_next_mode("credits",{})
+     end
     end,
-    60)
+    30)
   end
  end
 end
@@ -564,11 +580,129 @@ function menu_draw(_ENV)
  spr(128, 48,4, C_TRANSPARENT, 1,0,0,
      16,5)
  dsprint("< "..player_count.." kids >",
-         34,90,C_WHITE,C_BLACK,true)
+         34,90,
+         selected==0 and C_WHITE or C_LIGHTGREY,
+         C_BLACK,true)
  dsprint("  Help",34,98,
-         C_WHITE,C_BLACK,true)
+         selected==1 and C_WHITE or C_LIGHTGREY,
+         C_BLACK,true)
  dsprint("  Credits",34,106,
-         C_WHITE,C_BLACK,true)
+         selected==2 and C_WHITE or C_LIGHTGREY,
+         C_BLACK,true)
+end
+
+------ HELP
+
+help={}
+
+function help_enter(args)
+ sync(1|2|4|32,1)
+ camera(0,0)
+ cls(0)
+ -- fade in from black
+ fade_init_palette()
+ fade_black(1)
+ add_frame_hook(
+  function(nleft,ntotal)
+   fade_black(nleft/ntotal)
+  end,
+  function() fade_black(0) end,
+  30)
+ help=obj({
+  update=help_update,
+  draw=help_draw,
+  leave=help_leave,
+  ignore_input=false,
+ })
+ return help
+end
+
+function help_leave(_ENV)
+ clip()
+ music()
+end
+
+function help_update(_ENV)
+ -- input
+ if not ignore_input then
+  if btnp(5) then
+   sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
+   ignore_input=true
+   -- fade to black & advance to next mode
+   add_frame_hook(
+    function(nleft,ntotal)
+     fade_black((ntotal-nleft)/ntotal)
+    end,
+    function()
+     set_next_mode("menu",{
+     })
+    end,
+    30)
+  end
+ end
+end
+
+function help_draw(_ENV)
+ cls(C_DARKGREY)
+ print("Help goes here!",50,50,C_WHITE)
+ print("(B) Back", 40,124,C_WHITE)
+end
+
+------ CREDITS
+
+cred={}
+
+function cred_enter(args)
+ sync(1|2|4|32,1)
+ camera(0,0)
+ cls(0)
+ -- fade in from black
+ fade_init_palette()
+ fade_black(1)
+ add_frame_hook(
+  function(nleft,ntotal)
+   fade_black(nleft/ntotal)
+  end,
+  function() fade_black(0) end,
+  30)
+ cred=obj({
+  update=cred_update,
+  draw=cred_draw,
+  leave=cred_leave,
+  ignore_input=false,
+ })
+ return cred
+end
+
+function cred_leave(_ENV)
+ clip()
+ music()
+end
+
+function cred_update(_ENV)
+ -- input
+ if not ignore_input then
+  if btnp(5) then
+   sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
+   ignore_input=true
+   -- fade to black & advance to next mode
+   add_frame_hook(
+    function(nleft,ntotal)
+     fade_black((ntotal-nleft)/ntotal)
+    end,
+    function()
+     set_next_mode("menu",{
+     })
+    end,
+    30)
+  end
+ end
+end
+
+function cred_draw(_ENV)
+ cls(C_DARKGREY)
+ print("Credits go here!",50,50,C_WHITE)
+ print("(B) Back", 40,124,C_WHITE)
 end
 
 ------ COMBAT
@@ -1531,8 +1665,8 @@ end
 
 function vt_update(_ENV)
  -- go back to main menu
- if btnp(0*8+4) or btnp(1*8+4)
- or btnp(2*8+4) or btnp(3*8+4) then
+ if btnp(0*8+5) or btnp(1*8+5)
+ or btnp(2*8+5) or btnp(3*8+5) then
   sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
   set_next_mode("menu",{
    player_count=#players,
@@ -1594,6 +1728,7 @@ function vt_draw(_ENV)
  for _,d in ipairs(drops) do
   pix(d.pos.x,d.pos.y,C_LIGHTBLUE)
  end
+ print("(B) Main Menu",40,124,C_WHITE)
 end
 -- <TILES>
 -- 000:3333333333333333333333333333333333333333333333333333333333333333
