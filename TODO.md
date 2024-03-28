@@ -1,16 +1,6 @@
 TODO:
-- sound
-  - walk loop
-  - run loop
-  - windup
-  - throw
-  - splash (terrain)
-  - splash (player)
-  - refill
-  - refill warning
-  - player eliminated
-  - victory
 - music
+  - helper to find an available sound channel for sfx. Needs to handle being called multiple times a frame.
   - menu
   - in-game
   - victory
@@ -74,3 +64,4 @@ X AI [defer to quadplay]
 * forward character face/skin/hair from game to victory to make sure they look the same
 * grass variations
 * main menu sounds
+* in-game sounds

@@ -37,11 +37,17 @@ C_LIGHTBLUE=13
 C_RED=5
 C_TRANSPARENT=5 -- by default
 -- sounds
-SFX_FOO=0
--- music patterns
+SFX_STEP=1
 SFX_MENU_CONFIRM=18
 SFX_MENU_MOVE=19
 SFX_MENU_CANCEL=20
+SFX_WINDUP=21
+SFX_THROW=22
+SFX_BALLOONPOP=23
+SFX_PLAYERHIT=24
+SFX_REFILL=25
+SFX_ELIMINATED=26
+-- music tracks
 MUS_MENU=0
 -- map tile ids
 TID_GRASS0=100
@@ -865,6 +871,8 @@ function cb_update(_ENV)
   end
   ::end_balloon_update::
   if pop then
+   sfx(SFX_BALLOONPOP,6*12+math.random(0,4),
+    -1,2)
    -- check for nearby players and
    -- assign splash damage
    local max_dst2=K_SPLASH_DIST*K_SPLASH_DIST
@@ -876,6 +884,12 @@ function cb_update(_ENV)
                     K_ENERGY_SPLASH,
                     dst2/max_dst2)
      p.energy=max(0,p.energy-dmg)
+     -- don't play "hit" sound on the
+     -- same frame as "eliminated"
+     if p.energy>0 then
+      sfx(SFX_PLAYERHIT,3*12+math.random(10,22),
+       -1,1)
+     end
     end
    end
    local disth=K_SPLASH_DIST/2
@@ -907,6 +921,8 @@ function cb_update(_ENV)
    p.windup=0 -- cancel existing throw
    p.refill_cooldown=0
    p.anims:to("idlelr") -- TODO: defeat
+   sfx(SFX_ELIMINATED,4*12+math.random(0,4),
+    -1,0)
    -- TODO other time-of-elimination
    -- effects go here
   end
@@ -986,7 +1002,8 @@ function cb_update(_ENV)
   if p.move.x~=0 or p.move.y~=0 then
    p.dir=v2cpy(p.move)
   end
-  -- update animation state
+  -- update animation state &
+  -- trigger footstep sounds
   local new_sn=p.anims.sn
   if v2eq(p.move,v2zero) then
    if p.dir.y<0 then new_sn="idleu" p.hflip=1
@@ -997,6 +1014,10 @@ function cb_update(_ENV)
    if p.move.y<0 then new_sn="walku" p.hflip=1
    elseif p.move.y>0 then new_sn="walkd" p.hflip=0
    else new_sn="walklr" p.hflip=p.move.x<0 and 1 or 0
+   end
+   if mode_frames%15==p.pid then
+    sfx(SFX_STEP,6*12+math.random(-4,4),
+     -1,3)
    end
   end
   if new_sn~=p.anims.sn then
@@ -1009,9 +1030,15 @@ function cb_update(_ENV)
   p.focus.y=approach(p.focus.y,p.pos.y+4,.2)//1
   -- handle throwing balloons
   if p.ammo>0 and btn(pb0+5) then
+   if p.windup==0 then
+    sfx(SFX_WINDUP,2*12+math.random(5,9),
+     -1,1)
+   end
    p.windup=min(K_MAX_WINDUP,p.windup+1)
   elseif not btn(pb0+5)
   and p.windup>0 then
+   sfx(SFX_THROW,3*12+math.random(7,11),
+    -1,1)
    p.ammo=max(p.ammo-1,0)
    local borig=balloon_origin(p.pos,p.dir)
    add(balloons,{
@@ -1049,7 +1076,7 @@ function cb_update(_ENV)
    and rects_overlap(
         p.pos,v2add(p.pos,v2(7,7)),
         r.pos,v2add(r.pos,v2(7,7))) then
-    -- TODO play sound
+    sfx(SFX_REFILL,4*12+2,-1,1)
     p.energy=K_MAX_ENERGY
     p.ammo=K_MAX_AMMO
     p.refill_cooldown=K_REFILL_COOLDOWN
@@ -2461,14 +2488,23 @@ end
 -- 001:0023456789abcdffffdcba9876543200
 -- 002:0123456789abcdef0123456789abcdef
 -- 004:02469a96786777890b6c861204a257e9
+-- 005:0000ffffffffffff0000ffffffffffff
+-- 006:024689abcddeffffffeedcba99876420
 -- </WAVES>
 
 -- <SFX>
+-- 001:d300e300e300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300600000000000
 -- 016:d303e302f301f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300500000000000
 -- 017:a007600620050004000300010000000d000b00085008a008f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000b60000000000
 -- 018:05006505a500f500f5006500b505f500f500c500e505f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500c72000000000
 -- 019:05096500a500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500c72000000000
 -- 020:0500650a9508f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500c62000000000
+-- 021:660d960da60dc60da60f86006602460336041605060606060606f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600a17000000000
+-- 022:0107010701070107110711071107110621052104210331033102410141015100510f610e610e710d710c810b810b910a9109a109b108c108e108f108b29000000000
+-- 023:6300d300c300e300c300e300d300e300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300672000000000
+-- 024:1407240644046400a40de40af408f400f400f400f400f400f400f400f400f400f400f400f400f400f400f400f400f400f400f400f400f400f400f400b79000000000
+-- 025:42098209a209e209f200f200320b720bc20be20bf200f200120d620da20de20df200f200220f520f920fe20ff200f200020032007200e200f200f200c12000000000
+-- 026:040704070406040604050405040514041404140424032403340244014401540f640f740e840d940da40cb40cc40bd40ad409f408f400f400f400f400402000000000
 -- 048:01000100210041006100a100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100200000000000
 -- 049:040004000400040004000400040004000400040004000400040004000400040004000400040004000400040004000400040004000400040004000400401000000000
 -- 050:80007000700070007000800090009000a000b000d000e000e000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000300000000000
