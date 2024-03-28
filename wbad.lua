@@ -573,7 +573,6 @@ function menu_update(_ENV)
 end
 
 function menu_draw(_ENV)
- cls(C_LIGHTBLUE)
  map(0,0,30,1,0,0)
  map(0,1,14,16,0,8)
  spr(256, 14*8,8, -1, 1,0,0, 16,16)
