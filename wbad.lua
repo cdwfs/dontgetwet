@@ -860,7 +860,6 @@ function cb_update(_ENV)
    and b.pos.x<=p.pos.x+7+b.r
    and b.pos.y<=p.pos.y+7+b.r then
     pop=true
-    p.energy=max(0,p.energy-K_ENERGY_HIT)
     goto end_balloon_update
    end
   end
@@ -868,12 +867,15 @@ function cb_update(_ENV)
   if pop then
    -- check for nearby players and
    -- assign splash damage
-   local splash_dist2=K_SPLASH_DIST*K_SPLASH_DIST
+   local max_dst2=K_SPLASH_DIST*K_SPLASH_DIST
    for _,p in ipairs(players) do
     local pc=v2add(p.pos,v2(4,4))
-    if b.pid~=p.pid
-    and v2dstsq(pc,b.pos)<splash_dist2 then
-     p.energy=max(0,p.energy-K_ENERGY_SPLASH)
+    local dst2=v2dstsq(pc,b.pos)
+    if b.pid~=p.pid and dst2<max_dst2 then
+     local dmg=lerp(K_ENERGY_HIT,
+                    K_ENERGY_SPLASH,
+                    dst2/max_dst2)
+     p.energy=max(0,p.energy-dmg)
     end
    end
    local disth=K_SPLASH_DIST/2
@@ -1045,8 +1047,8 @@ function cb_update(_ENV)
   for _,r in ipairs(refills) do
    if p.refill_cooldown==0
    and rects_overlap(
-    p.pos,v2add(p.pos,v2(7,7)),
-    r.pos,v2add(r.pos,v2(7,7))) then
+        p.pos,v2add(p.pos,v2(7,7)),
+        r.pos,v2add(r.pos,v2(7,7))) then
     -- TODO play sound
     p.energy=K_MAX_ENERGY
     p.ammo=K_MAX_AMMO
