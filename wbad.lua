@@ -299,7 +299,7 @@ end
 
 -- print with a drop-shadow
 function dsprint(msg,x,y,c,cs,...)
- print(msg,x-1,y+1,cs,...)
+ print(msg,x+1,y+1,cs,...)
  print(msg,x,y,c,...)
 end
 
