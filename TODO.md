@@ -4,12 +4,10 @@ TODO:
   - menu
   - in-game
   - victory
-- main menu
 - help screen
 - credits screen
 - time limit (either explicit, or battle-royale-style arena shrinking)
 - bugs
-  - add a delay & prompt to victory screen
   - remove "kill everyone but player one" hack
   - players should collide with other players
   - bushes block balloons but not movement? (you'd still get splash damage)
@@ -65,3 +63,5 @@ X AI [defer to quadplay]
 * grass variations
 * main menu sounds
 * in-game sounds
+* players can form teams
+* add a delay & prompt to victory screen
