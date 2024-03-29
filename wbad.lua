@@ -25,6 +25,8 @@ K_MIN_THROW=20
 K_MAX_THROW=70
 K_BALLOON_RADIUS=2
 K_SPLASH_DIST=14
+K_SCREEN_W=240
+K_SCREEN_H=136
 -- palette color indices
 TEAM_COLORS={6,12,13,10}
 TEAM_COLORS2={2,9,4,11}
@@ -237,6 +239,10 @@ end
 
 function lerp(a,b,t)
  return a+(b-a)*t
+end
+
+function mod1n(x,n)
+ return ((x-1)%n)+1
 end
 
 -- a0,a1,b0,b1 are v2 bounds of two rects
