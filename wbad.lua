@@ -1333,10 +1333,12 @@ function cb_update(_ENV)
    elseif p.move.y>0 then new_sn="walkd" p.hflip=0
    else new_sn="walklr" p.hflip=p.move.x<0 and 1 or 0
    end
-   if mode_frames%15==p.pid then
-    sfx(SFX_STEP,6*12+math.random(-4,4),
-     -1,3)
-   end
+   -- footstep sounds interfere with
+   -- the music
+   --if mode_frames%15==p.pid then
+   -- sfx(SFX_STEP,6*12+math.random(-4,4),
+   --  -1,3)
+   --end
   end
   if new_sn~=p.anims.sn then
    p.anims:to(new_sn)
