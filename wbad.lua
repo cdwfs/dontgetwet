@@ -8,6 +8,46 @@
 
 ------ GLOBALS
 
+function vardump(value,depth,key)
+ local line_prefix=""
+ local spaces=""
+ if key~=nil then
+  line_prefix="["..key.."] = "
+ end
+ if depth==nil then
+  depth=0
+ else
+  depth=depth+1
+  for i=1,depth do
+   spaces=spaces.." "
+  end
+ end
+ local t=type(value)
+ if t=="table" then
+  local mtable=getmetatable(value)
+  if mtable then
+   trace(spaces.."(metatable) ")
+   value=mtable
+  else
+   trace(spaces..line_prefix.."(table) ")
+  end
+  for k,v in pairs(value) do
+   vardump(v,depth,k)
+  end
+ elseif t=="function" then
+  trace(spaces..line_prefix..
+         "(function)")
+ elseif t=="thread"
+     or t=="userdata"
+     or value==nil then
+  trace(spaces..tostring(value))
+ else
+  trace(spaces..line_prefix..
+         "("..t..") "..
+         tostring(value))
+ end
+end
+
 -- constants
 K_MAX_ENERGY=100
 K_ENERGY_HIT=25
