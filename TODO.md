@@ -10,10 +10,8 @@ TODO:
 - bugs
   - remove "kill everyone but player one" hack
   - players should collide with other players
-  - bushes block balloons but not movement? (you'd still get splash damage)
   - dark green drop-shadows don't look right over paths. avoid placing pushes and trees to the left/right of paths? Crazy shadow-clipping?
   - drop-shadows draw over neighboring walls. THAT should be solved with clipping.
-  - don't allow running with windup, to make chases more interesting.
 - art
   - winning player animation
   - losing player animation
@@ -65,3 +63,5 @@ X AI [defer to quadplay]
 * in-game sounds
 * players can form teams
 * add a delay & prompt to victory screen
+* bushes block balloons but not movement? (you'd still get splash damage)
+* don't allow running with windup, to make chases more interesting.
