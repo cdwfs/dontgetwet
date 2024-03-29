@@ -1802,7 +1802,10 @@ function vt_enter(args)
   function(nleft,ntotal)
    fade_black(nleft/ntotal)
   end,
-  function() fade_black(0) end,
+  function()
+   fade_black(0)
+   vt.ignore_input=false
+  end,
   30)
  camera(0,0)
  clip()
@@ -1815,6 +1818,7 @@ function vt_enter(args)
   grnd_y=80,
   drop_spawns={},
   drops={},
+  ignore_input=true,
  })
  -- place players
  local x0,x1=60,180
@@ -1853,14 +1857,16 @@ function vt_leave(_ENV)
 end
 
 function vt_update(_ENV)
- -- go back to teams screen
- -- for a rematch
- if btnp(0*8+5) or btnp(1*8+5)
- or btnp(2*8+5) or btnp(3*8+5) then
-  sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
-  set_next_mode("teams",{
-   prev_players=players,
-  })
+ if not ignore_input then
+  -- go back to teams screen
+  -- for a rematch
+  if btnp(0*8+4) or btnp(1*8+4)
+  or btnp(2*8+4) or btnp(3*8+4) then
+   sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
+   set_next_mode("teams",{
+    prev_players=players,
+   })
+  end
  end
  -- update water drops
  local drops2={}
