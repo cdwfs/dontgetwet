@@ -568,7 +568,6 @@ function menu_enter(args)
   update=menu_update,
   draw=menu_draw,
   leave=menu_leave,
-  player_count=args.player_count or 2, -- must be 2-4
   ignore_input=false,
   selected=0,
  })
@@ -583,13 +582,7 @@ end
 function menu_update(_ENV)
  -- input
  if not ignore_input then
-  if selected==0 and btnp(2) then
-   sfx(SFX_MENU_MOVE,"D-5",-1,1)
-   player_count=(player_count-2+2)%3+2
-  elseif selected==0 and btnp(3) then
-   sfx(SFX_MENU_MOVE,"D-5",-1,1)
-   player_count=(player_count-2+1)%3+2
-  elseif btnp(0) then
+  if btnp(0) then
    selected=(selected+2)%3
   elseif btnp(1) then
    selected=(selected+1)%3
@@ -604,9 +597,7 @@ function menu_update(_ENV)
     end,
     function()
      if selected==0 then
-      set_next_mode("combat",{
-       player_count=player_count,
-      })
+      set_next_mode("teams",{})
      elseif selected==1 then
       set_next_mode("help",{})
      elseif selected==2 then
@@ -624,14 +615,13 @@ function menu_draw(_ENV)
  spr(256, 14*8,8, -1, 1,0,0, 16,16)
  spr(128, 48,4, C_TRANSPARENT, 1,0,0,
      16,5)
- dsprint("< "..player_count.." kids >",
-         34,90,
+ dsprint("Play",46,89,
          selected==0 and C_WHITE or C_LIGHTGREY,
          C_BLACK,true)
- dsprint("  Help",34,98,
+ dsprint("Help",46,97,
          selected==1 and C_WHITE or C_LIGHTGREY,
          C_BLACK,true)
- dsprint("  Credits",34,106,
+ dsprint("Credits",46,105,
          selected==2 and C_WHITE or C_LIGHTGREY,
          C_BLACK,true)
 end
@@ -750,6 +740,159 @@ function cred_draw(_ENV)
  print("(B) Back", 40,124,C_WHITE)
 end
 
+------ TEAMS
+
+team={}
+K_IDLE=0
+K_JOINED=1
+
+function team_enter(args)
+ sync(1|2|4|32,0)
+ camera(0,0)
+ cls(0)
+ -- fade in from black
+ fade_init_palette()
+ fade_black(1)
+ add_frame_hook(
+  function(nleft,ntotal)
+   fade_black(nleft/ntotal)
+  end,
+  function() fade_black(0) end,
+  30)
+ team=obj({
+  update=team_update,
+  draw=team_draw,
+  leave=team_leave,
+  ignore_input=false,
+  state={K_JOINED,K_IDLE,K_IDLE,K_IDLE},
+  players={},
+  can_play=false,
+ })
+ for i=1,4 do
+  local p=create_player(i,i)
+  p.pos=v2(20+i*40-5,K_SCREEN_H/2)
+  add(team.players,p)
+ end
+ -- copy previous players if this is
+ -- a rematch
+ for _,pp in ipairs(args.prev_players or {}) do
+  team.state[pp.pid]=K_JOINED
+  local p=team.players[pp.pid]
+  p.team=pp.team
+  p.color=pp.color
+  p.color2=pp.color2
+  p.skinc=pp.skinc
+  p.hairc=pp.hairc
+  p.faceu=pp.faceu
+  p.faced=pp.faced
+  p.facelr=pp.facelr
+ end
+ return team
+end
+
+function team_leave(_ENV)
+ clip()
+ music()
+end
+
+function team_update(_ENV)
+ -- input
+ if not ignore_input then
+  for pid,p in ipairs(players) do
+   local pb0=8*(pid-1)
+   -- check for P2-P4 joining/leaving
+   if pid>1 and state[pid]==K_IDLE
+   and btnp(pb0+4) then
+    state[pid]=K_JOINED
+   elseif pid>1 and state[pid]==K_JOINED
+   and btnp(pb0+5) then
+    state[pid]=K_IDLE
+   -- joined players can change teams
+   elseif state[pid]==K_JOINED then
+    if btnp(pb0+2) then
+     p.team=mod1n(p.team+1,4)
+    elseif btnp(pb0+3) then
+     p.team=mod1n(p.team+3,4)
+    end
+    p.color=TEAM_COLORS[p.team]
+    p.color2=TEAM_COLORS2[p.team]
+   end
+  end
+  -- Check if we can start the game.
+  -- Requires at least two teams.
+  local nteams=0
+  local seen_teams={false,false,false,false}
+  for pid,p in ipairs(players)  do
+   if state[pid]==K_JOINED then
+    if not seen_teams[p.team] then
+     seen_teams[p.team]=true
+     nteams=nteams+1
+    end
+   end
+  end
+  can_play=nteams>1
+  -- P1's (B) goes back to menu
+  if btnp(5) then
+   sfx(SFX_MENU_CANCEL,"D-5",-1,1)
+   ignore_input=true
+   add_frame_hook(
+    function(nleft,ntotal)
+     fade_black((ntotal-nleft)/ntotal)
+    end,
+    function()
+     set_next_mode("menu",{})
+    end,
+    30)
+  elseif can_play and btnp(4) then
+   -- P1's (A) enters the game
+   -- if the teams are valid
+   sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
+   ignore_input=true
+   add_frame_hook(
+    function(nleft,ntotal)
+     fade_black((ntotal-nleft)/ntotal)
+    end,
+    function()
+     local active_players={}
+     for _,p in ipairs(players) do
+      if state[p.pid]==K_JOINED then
+       add(active_players,p)
+      end
+     end
+     set_next_mode("combat",{
+      players=active_players,
+     })
+    end,
+    30)
+  end
+ end
+end
+
+function team_draw(_ENV)
+ cls(C_DARKGREY)
+ dsprint("SELECT TEAMS",52,2,
+  C_WHITE,C_BLACK,false,2)
+ for pid,p in ipairs(players) do
+  dsprint("P"..pid,
+   p.pos.x,p.pos.y-24,
+   C_WHITE,C_BLACK)
+  if state[pid]==K_JOINED then
+   draw_player(p)
+   local dx=(mode_frames//30)%2
+   print("<",p.pos.x-7-dx,p.pos.y-2,C_WHITE,true)
+   print(">",p.pos.x+10+dx,p.pos.y-2,C_WHITE,true)
+  else
+   dsprint("Press\n (A)",
+    p.pos.x-10, p.pos.y-8,
+    TEAM_COLORS[mod1n(pid+mode_frames//10,#TEAM_COLORS)],
+    C_BLACK,true,1,false)
+  end
+ end
+ print("(B) Back", 40,124,C_WHITE)
+ print("(A) Play!", 160,124,
+  can_play and C_WHITE or C_LIGHTGREY)
+end
+
 ------ COMBAT
 
 cb={}
@@ -770,10 +913,8 @@ function cb_enter(args)
   update=cb_update,
   draw=cb_draw,
   leave=cb_leave,
-  all_player_count=args.player_count,
   player_spawns={},
-  players={}, -- see cb_init_players()
-  live_player_count=args.player_count,
+  players=args.players,
   balloons={},
   refills={},
   wparts={}, -- water particles
@@ -794,10 +935,10 @@ function cb_enter(args)
   {  0,68,120, 68},
   {120,68,120, 68},
  }
- if cb.all_player_count>=2 then
+ if #cb.players>=2 then
   pid_clips[1][3]=120
  end
- if cb.all_player_count>=3 then
+ if #cb.players>=3 then
   pid_clips[1][4]=68
   pid_clips[2][4]=68
  end
@@ -968,23 +1109,21 @@ function create_player(pid,team)
  p.skinc,p.hairc=table.unpack(
   skinhairs[math.random(#skinhairs)]
  )
+ p.anims:to("idlelr")
  return p
 end
 function cb_init_players(cb)
- for pid=1,cb.all_player_count do
-  local team=pid -- TODO: plumb this in from menu
-  local p=create_player(pid,team)
+ for _,p in ipairs(cb.players) do
   -- choose a spawn tile
   local ispawn=math.random(#cb.player_spawns)
   p.fpos=v2scl(
    v2cpy(cb.player_spawns[ispawn]),8)
   table.remove(cb.player_spawns,ispawn)
   p.pos=v2flr(v2add(p.fpos,v2(0.5,0.5)))
-  local pclip=cb.clips[pid]
+  local pclip=cb.clips[p.pid]
   p.vpcenter=v2(
    pclip[1]+pclip[3]/2,
    pclip[2]+pclip[4]/2)
-  add(cb.players,p)
  end
 end
 
@@ -1681,6 +1820,8 @@ function vt_enter(args)
   p.pos=v2(flr(x0+(p.pid-1)*dx-4),
            vt.grnd_y)
   p.y0=vt.grnd_y
+  p.dir=v2(1,0)
+  p.hflip=false
   p.anims:to("idlelr")
  end
  -- Make a list of all pixels in a
@@ -1709,12 +1850,13 @@ function vt_leave(_ENV)
 end
 
 function vt_update(_ENV)
- -- go back to main menu
+ -- go back to teams screen
+ -- for a rematch
  if btnp(0*8+5) or btnp(1*8+5)
  or btnp(2*8+5) or btnp(3*8+5) then
   sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
-  set_next_mode("menu",{
-   player_count=#players,
+  set_next_mode("teams",{
+   prev_players=players,
   })
  end
  -- update water drops
@@ -1773,7 +1915,7 @@ function vt_draw(_ENV)
  for _,d in ipairs(drops) do
   pix(d.pos.x,d.pos.y,C_LIGHTBLUE)
  end
- print("(B) Main Menu",40,124,C_WHITE)
+ print("(A) Rematch!",40,124,C_WHITE)
 end
 -- <TILES>
 -- 000:3333333333333333333333333333333333333333333333333333333333333333
