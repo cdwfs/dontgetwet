@@ -601,7 +601,7 @@ end
 help={}
 
 function help_enter(args)
- sync(1|2|4|32,1)
+ sync(1|2|4|32,0)
  camera(0,0)
  cls(0)
  -- fade in from black
@@ -658,7 +658,7 @@ end
 cred={}
 
 function cred_enter(args)
- sync(1|2|4|32,1)
+ sync(1|2|4|32,0)
  camera(0,0)
  cls(0)
  -- fade in from black
