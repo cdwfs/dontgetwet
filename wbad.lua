@@ -286,6 +286,11 @@ function mod1n(x,n)
  return ((x-1)%n)+1
 end
 
+-- return random element from a table
+function rndt(t)
+ return t[math.random(#t)]
+end
+
 -- a0,a1,b0,b1 are v2 bounds of two rects
 function rects_overlap(a0,a1,b0,b1)
  return a1.x>=b0.x and a0.x<=b1.x
