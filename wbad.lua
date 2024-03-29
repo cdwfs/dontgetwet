@@ -60,7 +60,7 @@ K_MAX_WALK_SPEED=0.6
 K_MAX_WINDUP_SPEED=0.4
 K_MAX_AMMO=5
 K_MAX_PING_RADIUS=600
-K_REFILL_COOLDOWN=60*5
+K_REFILL_COOLDOWN=60*10
 K_MAX_WINDUP=60
 K_MIN_THROW=20
 K_MAX_THROW=70
@@ -1006,6 +1006,7 @@ function cb_enter(args)
      pos=v2(mx*8,my*8),
      bounds0=v2(mx*8-5, my*8),
      bounds1=v2(mx*8+5, my*8+8),
+     cooldown=0,
     })
     mset(mx,my,rnd_grass())
    elseif tid==TID_SPAWN_PLAYER then
@@ -1119,7 +1120,6 @@ function create_player(pid,team)
   speed=0, -- how far to move in current dir per frame
   energy=K_MAX_ENERGY,
   ammo=K_MAX_AMMO,
-  refill_cooldown=0,
   eliminated=false,
   windup=0,
   facelr=464,
@@ -1281,7 +1281,6 @@ function cb_update(_ENV)
    p.hflip=0
    p.ammo=0 -- prevents throwing
    p.windup=0 -- cancel existing throw
-   p.refill_cooldown=0
    p.anims:to("idlelr") -- TODO: defeat
    sfx(SFX_ELIMINATED,4*12+math.random(0,4),
     -1,0)
@@ -1429,34 +1428,33 @@ function cb_update(_ENV)
  -- update refill station pings
  local refill_pings2={}
  for _,rp in ipairs(refill_pings) do
-  rp.radius=rp.radius+2
+  rp.radius=rp.radius+3
   if rp.radius<=K_MAX_PING_RADIUS then
    add(refill_pings2,rp)
   end
  end
  refill_pings=refill_pings2
  -- update refill stations
- for _,p in ipairs(players) do
-  if p.eliminated then
-   goto refill_update_end
-  end
-  p.refill_cooldown=max(0,p.refill_cooldown-1)
-  for _,r in ipairs(refills) do
-   if p.refill_cooldown==0
-   and rects_overlap(
+ for _,r in ipairs(refills) do
+  if r.cooldown>0 then
+   r.cooldown=r.cooldown-1
+  else
+   for _,p in ipairs(players) do
+    if not p.eliminated
+    and rects_overlap(
         p.pos,v2add(p.pos,v2(7,7)),
         r.pos,v2add(r.pos,v2(7,7))) then
-    sfx(SFX_REFILL,4*12+2,-1,1)
-    p.energy=K_MAX_ENERGY
-    p.ammo=K_MAX_AMMO
-    p.refill_cooldown=K_REFILL_COOLDOWN
-    add(refill_pings,{
-     pos=v2add(r.pos,v2(4,4)),
-     radius=0,
-    })
+     sfx(SFX_REFILL,4*12+2,-1,1)
+     p.energy=K_MAX_ENERGY
+     p.ammo=K_MAX_AMMO
+     r.cooldown=K_REFILL_COOLDOWN
+     add(refill_pings,{
+      pos=v2add(r.pos,v2(4,4)),
+      radius=0,
+     })
+    end
    end
   end
-  ::refill_update_end::
  end
  -- Check for end of match
  if not end_hook then
@@ -1678,15 +1676,15 @@ function cb_draw(_ENV)
     elli(r.pos.x+4,r.pos.y+7,6,2,C_DARKGREY)
     add(draws,{
      order=r.pos.y, order2=r.pos.x,
-     f=function(r,cooldown)
+     f=function(r)
       spr(SID_REFILL, r.pos.x-4, r.pos.y,
        C_TRANSPARENT, 1,0,0, 2,1)
-      if cooldown>0 then
-       local h=8*p.refill_cooldown/K_REFILL_COOLDOWN
+      if r.cooldown>0 then
+       local h=8*r.cooldown/K_REFILL_COOLDOWN
        rect(r.pos.x-1,r.pos.y+8-h,
         10,h,C_RED)
       end
-     end, args={r,p.refill_cooldown}
+     end, args={r}
     })
    end
    -- sort and emit draw calls.
@@ -1723,7 +1721,8 @@ function cb_draw(_ENV)
    for _,r in ipairs(refills) do
     local rc=v2add(r.pos,v2(4,4))
     local d2=v2dstsq(pc,rc)
-    if d2<closest_d2 then
+    if r.cooldown==0
+    and d2<closest_d2 then
      closest=v2cpy(rc)
      closest_d2=d2
     end

@@ -65,3 +65,4 @@ X AI [defer to quadplay]
 * add a delay & prompt to victory screen
 * bushes block balloons but not movement? (you'd still get splash damage)
 * don't allow running with windup, to make chases more interesting.
+* move refill station cooldown from per-player to per-station
