@@ -1456,12 +1456,13 @@ function create_seesaw(mx,my)
   pos=v2(mx*8,my*8),
   bounds0=v2(mx*8,my*8-8),
   bounds1=v2(mx*8+39,my*8+7),
+  flip=flr(rnd(2)),
   shadow=function(_ENV)
    rect(pos.x,pos.y+7,40,2, C_DARKGREY)
   end,
   draw=function(_ENV)
    spr(SID_SEESAW, pos.x, pos.y-8,
-    C_TRANSPARENT, 1,0,0, 5,2)
+    C_TRANSPARENT, 1,flip,0, 5,2)
   end,
  })
  s.order,s.order2=s.pos.y,s.pos.x
