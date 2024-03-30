@@ -21,13 +21,14 @@ TODO:
   - Basketball hoop sprites
   - winning player animation
   - losing player animation
-  - sparkles on refill stations to make them stand out more
   - up & down leg animations are currently the same. Differentiate? Add a tshirt logo?
 - fun eye candy
+  - sparkles on refill stations to make them stand out more
   - mode transition: dozens of balloons fly at the screen and explode in splashes, which wash away to reveal the new mode
   - victory screen: a steady rain of the winning team's balloons falling and exploding on losing players
   - spawn droplets in player rect after getting hit with balloon
   - wet footprints after leaving water or getting hit
+  - head bob
   
 DONE:
 * strip invisibrawl arrows/blood code
