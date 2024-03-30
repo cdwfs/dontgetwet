@@ -6,22 +6,28 @@ TODO:
   - victory
 - help screen
 - credits screen
-- time limit (either explicit, or battle-royale-style arena shrinking)
+- gameplay features
+  - sudden death. (everyone gets one last refill, and then all refill stations disappear)
+  - deeper water is instant death. Player disappears in a splash
+  - shallow water is slowdown / energy drain. (draw players offset a few pixels lower, clip off their legs, add particles)
 - bugs
   - remove "kill everyone but player one" hack
   - players should collide with other players
   - dark green drop-shadows don't look right over paths. avoid placing pushes and trees to the left/right of paths? Crazy shadow-clipping?
   - drop-shadows draw over neighboring walls. THAT should be solved with clipping.
 - art
+  - rock sprites
+  - seesaw sprites
+  - toilet sprites
   - winning player animation
   - losing player animation
-  - streams/general-purpose ponds
   - sparkles on refill stations to make them stand out more
   - up & down leg animations are currently the same. Differentiate? Add a tshirt logo?
-- polish
+- fun eye candy
   - mode transition: dozens of balloons fly at the screen and explode in splashes, which wash away to reveal the new mode
   - victory screen: a steady rain of the winning team's balloons falling and exploding on losing players
-  
+  - spawn droplets in player rect after getting hit with balloon
+  - wet footprints after leaving water or getting hit
   
 DONE:
 * strip invisibrawl arrows/blood code
@@ -58,7 +64,7 @@ X AI [defer to quadplay]
 * replace orange in title screen palette with 0xFFF9
 * signs
 * forward character face/skin/hair from game to victory to make sure they look the same
-* grass variations
+* random grass variations
 * main menu sounds
 * in-game sounds
 * players can form teams
@@ -66,3 +72,5 @@ X AI [defer to quadplay]
 * bushes block balloons but not movement? (you'd still get splash damage)
 * don't allow running with windup, to make chases more interesting.
 * move refill station cooldown from per-player to per-station
+* more sign variety
+* tiles for streams & ponds
