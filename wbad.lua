@@ -583,7 +583,7 @@ end
 
 ------ MENU
 
-mm={}
+mode_menu={}
 
 function menu_enter(args)
  sync(1|2|4|32,1)
@@ -599,14 +599,14 @@ function menu_enter(args)
   end,
   function() fade_black(0) end,
   30)
- mm=obj({
+ mode_menu=obj({
   update=menu_update,
   draw=menu_draw,
   leave=menu_leave,
   ignore_input=false,
   selected=0,
  })
- return mm
+ return mode_menu
 end
 
 function menu_leave(_ENV)
@@ -663,7 +663,7 @@ end
 
 ------ HELP
 
-help={}
+mode_help={}
 
 function help_enter(args)
  sync(1|2|4|32,0)
@@ -678,13 +678,13 @@ function help_enter(args)
   end,
   function() fade_black(0) end,
   30)
- help=obj({
+ mode_help=obj({
   update=help_update,
   draw=help_draw,
   leave=help_leave,
   ignore_input=false,
  })
- return help
+ return mode_help
 end
 
 function help_leave(_ENV)
@@ -720,7 +720,7 @@ end
 
 ------ CREDITS
 
-cred={}
+mode_cred={}
 
 function cred_enter(args)
  sync(1|2|4|32,0)
@@ -735,13 +735,13 @@ function cred_enter(args)
   end,
   function() fade_black(0) end,
   30)
- cred=obj({
+ mode_cred=obj({
   update=cred_update,
   draw=cred_draw,
   leave=cred_leave,
   ignore_input=false,
  })
- return cred
+ return mode_cred
 end
 
 function cred_leave(_ENV)
@@ -777,7 +777,7 @@ end
 
 ------ TEAMS
 
-team={}
+mode_team={}
 K_IDLE=0
 K_JOINED=1
 
@@ -794,7 +794,7 @@ function team_enter(args)
   end,
   function() fade_black(0) end,
   30)
- team=obj({
+ mode_team=obj({
   update=team_update,
   draw=team_draw,
   leave=team_leave,
@@ -806,13 +806,13 @@ function team_enter(args)
  for i=1,4 do
   local p=create_player(i,i)
   p.pos=v2(20+i*40-5,K_SCREEN_H/2)
-  add(team.players,p)
+  add(mode_team.players,p)
  end
  -- copy previous players if this is
  -- a rematch
  for _,pp in ipairs(args.prev_players or {}) do
-  team.state[pp.pid]=K_JOINED
-  local p=team.players[pp.pid]
+  mode_team.state[pp.pid]=K_JOINED
+  local p=mode_team.players[pp.pid]
   p.team=pp.team
   p.color=pp.color
   p.color2=pp.color2
@@ -822,7 +822,7 @@ function team_enter(args)
   p.faced=pp.faced
   p.facelr=pp.facelr
  end
- return team
+ return mode_team
 end
 
 function team_leave(_ENV)
@@ -849,8 +849,7 @@ function team_update(_ENV)
     elseif btnp(pb0+3) then
      p.team=mod1n(p.team+3,4)
     end
-    p.color=TEAM_COLORS[p.team]
-    p.color2=TEAM_COLORS2[p.team]
+    p:set_team(p.team)
    end
   end
   -- Check if we can start the game.
@@ -930,7 +929,7 @@ end
 
 ------ COMBAT
 
-cb={}
+mode_combat={}
 
 function cb_enter(args)
  sync(1|2|4|32,0)
@@ -944,7 +943,7 @@ function cb_enter(args)
   function() fade_black(0) end,
   60)
  camera(0,0)
- cb=obj({
+ mode_combat=obj({
   update=cb_update,
   draw=cb_draw,
   leave=cb_leave,
@@ -958,6 +957,7 @@ function cb_enter(args)
   obstacles={},
   end_hook=nil,
  })
+ local cb=mode_combat
  -- adjust clip rects based on player count
  local pid_clips={
   {  0, 0,240,136},
@@ -1989,7 +1989,7 @@ end
 
 ---- victory
 
-vt={}
+mode_victory={}
 function vt_enter(args)
  sync(1|2|32,0)
  -- fade in from black
@@ -2001,12 +2001,12 @@ function vt_enter(args)
   end,
   function()
    fade_black(0)
-   vt.ignore_input=false
+   mode_victory.ignore_input=false
   end,
   30)
  camera(0,0)
  clip()
- vt=obj({
+ mode_victory=obj({
   update=vt_update,
   draw=vt_draw,
   leave=vt_leave,
@@ -2017,6 +2017,7 @@ function vt_enter(args)
   drops={},
   ignore_input=true,
  })
+ local vt=mode_victory
  -- place players
  local x0,x1=60,180
  local dx=(x1-x0)/(#vt.players-1)
