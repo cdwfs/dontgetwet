@@ -1260,7 +1260,8 @@ function cb_update(_ENV)
    -- effects go here
   end
   -- touching hazard tiles is instant elimination
-  local mtid=mget(p.pos.x+4//8,p.pos.y+4//8)
+  local mtid=mget((p.pos.x+4)//8,
+                  (p.pos.y+4)//8)
   if not p.eliminated
   and fget(mtid,SF_HAZARD) then
    p:reset()
