@@ -12,7 +12,6 @@ TODO:
   - shallow water is slowdown / energy drain. (draw players offset a few pixels lower, clip off their legs, add particles)
 - bugs
   - add helper to guess what the background a spawned object should be replaced with. Look at surrounding tiles, count grass/pavement/water, and go with whatever you see the most of.
-  - add "no shadows" sprite flag. Add to wall tiles. clip shadow drawing against these tiles (or just draw them after the main shadow pass, but before sorted draws?
   - remove "kill everyone but player one" hack
 - art
   - add actual title logo to main menu
@@ -74,3 +73,4 @@ X AI [defer to quadplay]
 * tiles for streams & ponds
 * seesaw sprites
 * toilet sprites
+* add "no shadows" sprite flag. Add to wall tiles. draw them after the main shadow pass, but before sorted draws.
