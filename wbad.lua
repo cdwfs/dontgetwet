@@ -213,6 +213,13 @@ tic80ellib=ellib
 ellib=function(x,y,a,b,color)
  tic80ellib(x-camera_x,y-camera_y,a,b,color)
 end
+tic80tri=tri
+tri=function(x1,y1,x2,y2,x3,y3,color)
+ tic80tri(x1-camera_x,y1-camera_y,
+          x2-camera_x,y2-camera_y,
+          x3-camera_x,y3-camera_y,
+          color)
+end
 tic80print=print
 print=function(text,x,y,...)
  return tic80print(text,
