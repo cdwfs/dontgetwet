@@ -1,9 +1,9 @@
--- title:   Water Balloons At Dawn
+-- title:   Don't Get Wet
 -- author:  Bitterly Indifferent Games
 -- desc:    A playground water-balloon fight for 2-4 players.
 -- site:    github.com/cdwfs/wbad
 -- license: Creative Commons Zero v1.0 Universal
--- version: 0.1
+-- version: 0.8
 -- script:  lua
 
 ------ GLOBALS
@@ -68,6 +68,7 @@ K_BALLOON_RADIUS=2
 K_SPLASH_DIST=14
 K_SCREEN_W=240
 K_SCREEN_H=136
+K_SUDDEN_DEATH_START=60*60*3
 -- palette color indices
 TEAM_COLORS={6,12,13,10}
 TEAM_COLORS2={2,9,4,11}
@@ -329,7 +330,7 @@ end
 -- print with a drop-shadow
 function dsprint(msg,x,y,c,cs,...)
  print(msg,x+1,y+1,cs,...)
- print(msg,x,y,c,...)
+ return print(msg,x,y,c,...)
 end
 
 -- palette fade
@@ -1154,6 +1155,18 @@ function cb_update(_ENV)
    end
   end
  end
+ -- enable sudden death
+ if mode_frames>=K_SUDDEN_DEATH_START
+ and #refills>0 then
+  -- remove all refill stations
+  refills={}
+  -- give all players one last refill
+  sfx(SFX_REFILL,4*12+2,-1,1)
+  for _,p in ipairs(players) do
+   p.energy=K_MAX_ENERGY
+   p.ammo=K_MAX_AMMO
+  end
+ end
  -- update water particles
  local wparts2={}
  for _,wp in ipairs(wparts) do
@@ -1889,8 +1902,8 @@ function cb_draw(_ENV)
    circb(pclip[1]+34+ib*6,pclip[2]+4,2,C_BLACK)
   end
   -- for low-energy/ammo players, draw "refill" prompt
-  if p.energy<K_ENERGY_WARNING
-  or p.ammo==0 then
+  if (p.energy<K_ENERGY_WARNING or p.ammo==0)
+  and mode_frames<K_SUDDEN_DEATH_START then
    dsprint("REFILL!",
          p.vpcenter.x-12,p.vpcenter.y+20,
          C_WHITE,C_DARKGREY)
@@ -1924,6 +1937,17 @@ function cb_draw(_ENV)
   end
   -- draw viewport border.
   rectb(pclip[1],pclip[2],pclip[3],pclip[4],p.color)
+ end
+ -- draw sudden death message
+ if mode_frames>=K_SUDDEN_DEATH_START then
+  camera()
+  clip()
+  local msg="SUDDEN DEATH!"
+  local msgw=print(msg,500,500,C_RED,true,2)
+  local msgx,msgy=K_SCREEN_W//2-msgw//2,
+   -10+(mode_frames-K_SUDDEN_DEATH_START)//1
+  dsprint(msg,msgx,msgy,
+   C_RED,C_BLACK,true,2)
  end
 end
 
