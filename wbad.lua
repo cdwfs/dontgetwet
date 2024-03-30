@@ -1057,54 +1057,64 @@ function create_player(pid,team)
     for a given player are:
     vpcenter-focus+wp
   ]]
-  fpos=v2(0,0),
-  pos=v2(0,0),
-  move=v2(0,0),
-  dir=v2(1,0),
-  vpcenter=v2(0,0),
-  focus=v2(0,0),
-  color=TEAM_COLORS[team],
-  color2=TEAM_COLORS2[team],
-  pid=pid,
-  team=team,
-  running=false,
-  speed=0, -- how far to move in current dir per frame
-  energy=K_MAX_ENERGY,
-  ammo=K_MAX_AMMO,
-  eliminated=false,
-  windup=0,
-  facelr=464,
-  faced=480,
-  faceu=496,
-  skinc=14,
-  hairc=12,
-  anims=animgraph({
-   idlelr={anim({428},8),"idlelr"},
-   idled={anim({444},8),"idled"},
-   idleu={anim({460},8),"idleu"},
-   walklr={anim({426,428,430,428},8),"walklr"},
-   walkd={anim({442,444,446,444},8),"walkd"},
-   walku={anim({458,460,462,460},8),"walku"},
-  },"idlelr"),
-  hflip=0,
- }
- -- randomize face
- local iface=2*math.random(0,5)
- p.facelr=p.facelr+iface
- p.faced=p.faced+iface
- p.faceu=p.faceu+iface
- -- randomize skin/hair
- local skinhairs={
-  {14,12}, -- fair/orange
-  {14,9},  -- fair/brown
-  {14,3},  -- fair/black
-  {14,15}, -- fair/blonde
-  {9,3},   -- dark/black
- }
- p.skinc,p.hairc=table.unpack(
-  skinhairs[math.random(#skinhairs)]
- )
- p.anims:to("idlelr")
+  set_team=function(self,new_team)
+   self.team=new_team
+   self.color=TEAM_COLORS[new_team]
+   self.color2=TEAM_COLORS2[new_team]
+  end,
+  reset=function(self,new_pid,new_team)
+   self.move=v2(0,0)
+   self.dir=v2(1,0)
+   if new_team then
+    self.fpos=v2(0,0)
+    self.pos=v2(0,0)
+    self.vpcenter=v2(0,0)
+    self.focus=v2(0,0)
+    self.pid=new_pid
+    self.set_team(self,new_team)
+    self.randomize_skin(self)
+   end
+   self.running=false
+   self.speed=0
+   self.energy=K_MAX_ENERGY
+   self.ammo=K_MAX_AMMO
+   self.eliminated=false
+   self.windup=0
+   self.anims=animgraph({
+    idlelr={anim({428},8),"idlelr"},
+    idled={anim({444},8),"idled"},
+    idleu={anim({460},8),"idleu"},
+    walklr={anim({426,428,430,428},8),"walklr"},
+    walkd={anim({442,444,446,444},8),"walkd"},
+    walku={anim({458,460,462,460},8),"walku"},
+   },"idlelr")
+   self.hflip=0
+   self.anims:to("idlelr")
+  end,
+  randomize_skin=function(self)
+   self.facelr=464
+   self.faced=480
+   self.faceu=496
+   self.skinc=14
+   self.hairc=12
+   -- randomize face
+   local iface=2*math.random(0,5)
+   self.facelr=self.facelr+iface
+   self.faced=self.faced+iface
+   self.faceu=self.faceu+iface
+   -- randomize skin/hair
+   local skinhairs={
+    {14,12}, -- fair/orange
+    {14,9},  -- fair/brown
+    {14,3},  -- fair/black
+    {14,15}, -- fair/blonde
+    {9,3},   -- dark/black
+   }
+   self.skinc,self.hairc=
+    table.unpack(rndt(skinhairs))
+  end,
+ })
+ p.reset(p,pid,team)
  return p
 end
 function cb_init_players(cb)
@@ -1139,7 +1149,7 @@ function cb_update(_ENV)
  if btnp(7) then
   for _,p in ipairs(players) do
    if p.pid>1 then
-    p.energy=0
+    p:reset()
     p.eliminated=true
    end
   end
@@ -1229,11 +1239,8 @@ function cb_update(_ENV)
     and K_ENERGY_RUN or K_ENERGY_WALK
   p.energy=max(0,p.energy-drain)
   if not p.eliminated and p.energy==0 then
+   p:reset()
    p.eliminated=true
-   p.hflip=0
-   p.ammo=0 -- prevents throwing
-   p.windup=0 -- cancel existing throw
-   p.anims:to("idlelr") -- TODO: defeat
    sfx(SFX_ELIMINATED,4*12+math.random(0,4),
     -1,0)
    -- TODO other time-of-elimination
