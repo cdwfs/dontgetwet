@@ -9,13 +9,16 @@ TODO:
 - gameplay features
   - sudden death. (everyone gets one last refill, and then all refill stations disappear)
   - deeper water is instant death. Player disappears in a splash
-  - shallow water is slowdown / energy drain. (draw players offset a few pixels lower, clip off their legs, add particles)
+  - shallow water is slowdown / energy drain. (draw players offset a few pixels lower, clip off their legs, add splash particles)
 - bugs
   - add helper to guess what the background a spawned object should be replaced with. Look at surrounding tiles, count grass/pavement/water, and go with whatever you see the most of.
   - remove "kill everyone but player one" hack
 - art
   - add actual title logo to main menu
   - rock sprites
+  - picnic blanket tiles
+  - sand tiles? (slow running)
+  - Basketball hoop sprites
   - winning player animation
   - losing player animation
   - sparkles on refill stations to make them stand out more
