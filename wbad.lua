@@ -955,15 +955,11 @@ function cb_enter(args)
  cb.clips=pid_clips
  -- parse map and spawn entities at
  -- indicated locations
- local function rnd_grass()
-  return TID_GRASS_POOL[
-   math.random(#TID_GRASS_POOL)]
- end
  for my=0,135 do
   for mx=0,239 do
    local tid=mget(mx,my)
    if tid==TID_GRASS0 then
-    mset(mx,my,rnd_grass())
+    mset(mx,my,rndt(TID_GRASS_POOL))
    elseif tid==TID_SPAWN_TREE then
     add(cb.trees,{
      pos=v2(mx*8,my*8),
@@ -1008,10 +1004,10 @@ function cb_enter(args)
      bounds1=v2(mx*8+5, my*8+8),
      cooldown=0,
     })
-    mset(mx,my,rnd_grass())
+    mset(mx,my,rndt(TID_GRASS_POOL))
    elseif tid==TID_SPAWN_PLAYER then
     add(cb.player_spawns,v2(mx,my))
-    mset(mx,my,rnd_grass())
+    mset(mx,my,rndt(TID_GRASS_POOL))
    elseif tid==TID_SPAWN_BUSH then
     local dx,dy=rnd(4)//1,rnd(7)//1
     add(cb.bushes,{
