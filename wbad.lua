@@ -1746,20 +1746,6 @@ function cb_draw(_ENV)
     })
    end
   end
-  -- draw refill station pings
-  for _,rp in ipairs(refill_pings) do
-   if rects_overlap(cull0,cull1,
-       v2sub(rp.pos,v2(rp.radius,rp.radius)),
-       v2add(rp.pos,v2(rp.radius,rp.radius))) then
-    add(draws,{
-     order=rp.pos.y, order2=rp.pos.x,
-     f=function(rp)
-      circb(rp.pos.x, rp.pos.y,
-            rp.radius, rp.radius%16)
-     end, args={rp}
-    })
-   end
-  end
   -- draw refill stations
   for _,r in ipairs(refills) do
    if rects_overlap(cull0,cull1,
@@ -1778,15 +1764,24 @@ function cb_draw(_ENV)
      end, args={r}
     })
    end
-   -- sort and emit draw calls.
-   table.sort(draws,
-    function(a,b)
-     return a.order<b.order
-     or (a.order==b.order and a.order2<b.order2)
-    end
-   )
-   for _,d in ipairs(draws) do
-    d.f(table.unpack(d.args))
+  end
+  -- sort and emit draw calls.
+  table.sort(draws,
+   function(a,b)
+    return a.order<b.order
+    or (a.order==b.order and a.order2<b.order2)
+   end
+  )
+  for _,d in ipairs(draws) do
+   d.f(table.unpack(d.args))
+  end
+  -- draw refill station pings
+  for _,rp in ipairs(refill_pings) do
+   if rects_overlap(cull0,cull1,
+       v2sub(rp.pos,v2(rp.radius,rp.radius)),
+       v2add(rp.pos,v2(rp.radius,rp.radius))) then
+    circb(rp.pos.x, rp.pos.y,
+          rp.radius, rp.radius%16)
    end
   end
   -- restore screen-space camera
