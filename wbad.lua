@@ -1024,7 +1024,7 @@ function cb_enter(args)
 end
 
 function create_player(pid,team)
- p={
+ local p=obj({
   --[[
   notes on player coordinates:
   - positions are for the player's
