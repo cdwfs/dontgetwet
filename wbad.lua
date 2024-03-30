@@ -1449,7 +1449,7 @@ end
 function create_seesaw(mx,my)
  for x=mx,mx+4 do
   if mget(x,my)~=TID_SPAWN_SEESAW then
-   trace("seesaw spawn at "..mx..","..my.." must be 5 tiles wide")
+   trace("ERROR: seesaw spawn at "..mx..","..my.." must be 5 tiles wide", 2)
    exit()
   end
  end
@@ -1476,7 +1476,7 @@ end
 function create_toilet(mx,my)
  for x=mx,mx+1 do
   if mget(x,my)~=TID_SPAWN_TOILET then
-   trace("toilet spawn at "..mx..","..my.." must be 2 tiles wide")
+   trace("ERROR: toilet spawn at "..mx..","..my.." must be 2 tiles wide", 2)
    exit()
   end
  end
@@ -1502,7 +1502,7 @@ end
 function create_mbars(mx,my)
  for x=mx,mx+2 do
   if mget(x,my)~=TID_SPAWN_MBARS then
-   trace("mbars spawn at "..mx..","..my.." must be 3 tiles wide")
+   trace("ERROR: mbars spawn at "..mx..","..my.." must be 3 tiles wide", 2)
    exit()
   end
  end
@@ -1533,7 +1533,7 @@ end
 function create_swing(mx,my)
  for x=mx,mx+3 do
   if mget(x,my)~=TID_SPAWN_SWING then
-   trace("swing spawn at "..mx..","..my.." must be 4 tiles wide")
+   trace("ERROR: swing spawn at "..mx..","..my.." must be 4 tiles wide", 2)
    exit()
   end
  end
@@ -1628,7 +1628,7 @@ function create_sign(mx,my)
  -- choose a random sign from ALL_SIGNS
  -- based on sign width
  if not ALL_SIGNS[sw] then
-  trace("ERROR: No signs available of width "..sw.." for sign at "..mx..","..my)
+  trace("ERROR: No signs available of width "..sw.." for sign at "..mx..","..my, 2)
   exit()
  end
  local src=rndt(ALL_SIGNS[sw])
