@@ -1246,7 +1246,17 @@ function cb_update(_ENV)
    -- TODO other time-of-elimination
    -- effects go here
   end
-  -- TODO check for touching hazard tiles
+  -- touching hazard tiles is instant elimination
+  local mtid=mget(p.pos.x+4//8,p.pos.y+4//8)
+  if not p.eliminated
+  and fget(mtid,SF_HAZARD) then
+   p:reset()
+   p.eliminated=true
+   sfx(SFX_ELIMINATED,4*12+math.random(0,4),
+    -1,0)
+   -- TODO other time-of-drowning
+   -- effects go here
+  end
  end
  -- handle input & move players
  for _,p in ipairs(players) do

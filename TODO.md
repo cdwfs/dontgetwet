@@ -8,8 +8,6 @@ TODO:
 - credits screen
 - gameplay features
   - sudden death. (everyone gets one last refill, and then all refill stations disappear)
-  - deeper water is instant death. Player disappears in a splash
-  - shallow water is slowdown / energy drain. (draw players offset a few pixels lower, clip off their legs, add splash particles)
 - bugs
   - add helper to guess what the background a spawned object should be replaced with. Look at surrounding tiles, count grass/pavement/water, and go with whatever you see the most of.
   - remove "kill everyone but player one" hack
@@ -22,6 +20,8 @@ TODO:
   - losing player animation
   - up & down leg animations are currently the same. Differentiate? Add a tshirt logo?
 - fun eye candy
+  - Player disappears in a splash in deep water
+  - draw players offset a few pixels lower in shallow water, clip off their legs, add splash particles when they move
   - sparkles on refill stations to make them stand out more
   - mode transition: dozens of balloons fly at the screen and explode in splashes, which wash away to reveal the new mode
   - victory screen: a steady rain of the winning team's balloons falling and exploding on losing players
@@ -78,3 +78,6 @@ X AI [defer to quadplay]
 * toilet sprites
 * add "no shadows" sprite flag. Add to wall tiles. draw them after the main shadow pass, but before sorted draws.
 * rock sprites
+* deeper water is instant death. Player disappears in a splash
+* shallow water is slowdown / energy drain. (draw players offset a few pixels lower, clip off their legs, add splash particles)
+
