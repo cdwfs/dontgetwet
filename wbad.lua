@@ -930,12 +930,7 @@ function cb_enter(args)
   wparts={}, -- water particles
   refill_pings={},
   -- scenery entities
-  trees={},
-  mbars={},
-  swings={},
-  elephants={},
-  bushes={},
-  signs={},
+  obstacles={},
   end_hook=nil,
  })
  -- adjust clip rects based on player count
@@ -961,42 +956,13 @@ function cb_enter(args)
    if tid==TID_GRASS0 then
     mset(mx,my,rndt(TID_GRASS_POOL))
    elseif tid==TID_SPAWN_TREE then
-    add(cb.trees,{
-     pos=v2(mx*8,my*8),
-     flip=flr(rnd(2)),
-     bounds0=v2(mx*8-8, my*8-24),
-     bounds1=v2(mx*8+15,my*8+7),
-    })
-    mset(mx,my,TID_GRASS_NOMOVE)
+    add(cb.obstacles,create_tree(mx,my))
    elseif tid==TID_SPAWN_MBARS then
-    add(cb.mbars,{
-     pos=v2(mx*8,my*8),
-     bounds0=v2(mx*8,my*8-16),
-     bounds1=v2(mx*8+23,my*8+7),
-     colorkey=15,
-    })
-    -- monkey bars are 3 tiles wide
-    -- but the middle is passable
-    mset(mx+0,my,TID_GRASS_NOMOVE)
-    mset(mx+1,my,rnd_grass())
-    mset(mx+2,my,TID_GRASS_NOMOVE)
+    add(cb.obstacles,create_mbars(mx,my))
    elseif tid==TID_SPAWN_SWING then
-    add(cb.swings,{
-     pos=v2(mx*8,my*8),
-     bounds0=v2(mx*8, my*8-16),
-     bounds1=v2(mx*8+31, my*8+7),
-    })
-    -- swings are 4 tiles wide
-    for x=mx,mx+3 do
-     mset(x,my,TID_GRASS_NOMOVE)
-    end
+    add(cb.obstacles,create_swing(mx,my))
    elseif tid==TID_SPAWN_ELEPHANT then
-    add(cb.elephants,{
-     pos=v2(mx*8,my*8),
-     bounds0=v2(mx*8-4, my*8-8),
-     bounds1=v2(mx*8+11,my*8+7),
-    })
-    mset(mx,my,TID_GRASS_NOMOVE)
+    add(cb.obstacles,create_elephant(mx,my))
    elseif tid==TID_SPAWN_REFILL then
     add(cb.refills,{
      pos=v2(mx*8,my*8),
@@ -1009,55 +975,9 @@ function cb_enter(args)
     add(cb.player_spawns,v2(mx,my))
     mset(mx,my,rndt(TID_GRASS_POOL))
    elseif tid==TID_SPAWN_BUSH then
-    local dx,dy=rnd(4)//1,rnd(7)//1
-    add(cb.bushes,{
-     pos=v2(mx*8+dx,my*8+dy),
-     flip=flr(rnd(2)),
-     bounds0=v2(mx*8+dx-8,my*8+dy-8),
-     bounds1=v2(mx*8+dx+7,my*8+dy+7),
-    })
-    mset(mx,my,TID_GRASS_NOBALLOON)
+    add(cb.obstacles,create_bush(mx,my))
    elseif tid==TID_SPAWN_SIGN then
-    local all_signs={
-     [3]={
-      {h=3,ft=function(s) spr(227,s.pos.x+4,s.pos.y-16+3,10, 1,0,0, 2,2) end},
-     },
-     [4]={
-      {h=3,ft=function(s) print("A Good\n  Sign",s.pos.x+6,s.pos.y-16+6,C_DARKGREY,false,1,true) end},
-     },
-     [5]={
-      {h=3,ft=function(s) print("Park at\nown risk",s.pos.x+6,s.pos.y-16+6,C_DARKGREY,false,1,true) end},
-      {h=3,ft=function(s) print("Dewdrop\nGardens",s.pos.x+6,s.pos.y-16+6,C_DARKGREY,false,1,true) end},
-      {h=3,ft=function(s) print("Have fun\nout there!",s.pos.x+6,s.pos.y-16+6,C_DARKGREY,false,1,true) end},
-     },
-     [6]={
-      {h=3,ft=function(s) print("NO CAMPING\n  ALLOWED!",s.pos.x+6,s.pos.y-16+6,C_DARKGREY,false,1,true) end},
-      {h=3,ft=function(s) print("NOTHING TO\nSEE HERE.",s.pos.x+6,s.pos.y-16+6,C_DARKGREY,false,1,true) end},
-     },
-    }
-    local mx2=mx
-    while true do
-     if mget(mx2+1,my)~=TID_SPAWN_SIGN then
-      break
-     end
-     mx2=mx2+1
-    end
-    local sw=1+mx2-mx
-    if not all_signs[sw] then
-     trace("ERROR: No signs available of width "..sw.." for sign at "..mx..","..my)
-    end
-    local s=rndt(all_signs[sw])
-    add(cb.signs,{
-     pos=v2(mx*8,my*8),
-     bounds0=v2(mx*8, my*8-(s.h-1)*8),
-     bounds1=v2(mx*8+sw*8-1, my*8+7),
-     ft=s.ft,
-     w=sw,
-     h=s.h
-    })
-    for x=mx,mx+sw-1 do
-     mset(x,my,TID_GRASS_NOMOVE)
-    end
+    add(cb.obstacles,create_sign(mx,my))
    end
   end
  end
@@ -1488,6 +1408,192 @@ function cb_update(_ENV)
  end
 end
 
+function create_tree(mx,my)
+ t=obj({
+  pos=v2(mx*8,my*8),
+  bounds0=v2(mx*8-8, my*8-24),
+  bounds1=v2(mx*8+15,my*8+7),
+  flip=flr(rnd(2)),
+  shadow=function(_ENV)
+   elli(pos.x+4,pos.y+7,10,3,C_DARKGREY)
+  end,
+  draw=function(_ENV)
+   spr(SID_TREE,pos.x-8,pos.y-24,
+    C_TRANSPARENT, 1,flip,0, 3,4)
+  end,
+ })
+ -- offset order slightly, so standing
+ -- next to trees still puts your head
+ -- in the leaves
+ t.order,t.order2=t.pos.y+1,t.pos.x
+ mset(mx,my,TID_GRASS_NOMOVE)
+ return t
+end
+
+function create_mbars(mx,my)
+ for x=mx,mx+2 do
+  if mget(x,my)~=TID_SPAWN_MBARS then
+   trace("mbars spawn at "..mx..","..my.." must be 3 tiles wide")
+   exit()
+  end
+ end
+ m=obj({
+  pos=v2(mx*8,my*8),
+  bounds0=v2(mx*8,my*8-16),
+  bounds1=v2(mx*8+23,my*8+7),
+  colorkey=15,
+  shadow=function(_ENV)
+   line(pos.x, pos.y+7,
+        pos.x+23, pos.y+7, C_DARKGREY)
+   line(pos.x+6, pos.y+5,
+        pos.x+17, pos.y+5, C_DARKGREY)
+  end,
+  draw=function(_ENV)
+   spr(SID_MBARS, pos.x, pos.y-16,
+    colorkey, 1,0,0, 3,3)
+  end,
+ })
+ m.order,m.order2=m.pos.y,m.pos.x
+ -- middle tile of monkey bars is passable
+ mset(mx+0,my,TID_GRASS_NOMOVE)
+ mset(mx+1,my,rndt(TID_GRASS_POOL))
+ mset(mx+2,my,TID_GRASS_NOMOVE)
+ return m
+end
+
+function create_swing(mx,my)
+ for x=mx,mx+3 do
+  if mget(x,my)~=TID_SPAWN_SWING then
+   trace("swing spawn at "..mx..","..my.." must be 4 tiles wide")
+   exit()
+  end
+ end
+ s=obj({
+  pos=v2(mx*8,my*8),
+  bounds0=v2(mx*8, my*8-16),
+  bounds1=v2(mx*8+31, my*8+7),
+  shadow=function(_ENV)
+   line(pos.x+1, pos.y+5,
+        pos.x+26,pos.y+5,C_DARKGREY)
+   elli(pos.x+10,pos.y+6,4,1,C_DARKGREY)
+   elli(pos.x+21,pos.y+6,4,1,C_DARKGREY)
+  end,
+  draw=function(_ENV)
+   spr(SID_SWING, pos.x, pos.y-16,
+    C_TRANSPARENT, 1,0,0, 4,3)
+  end,
+ })
+ s.order,s.order2=s.pos.y,s.pos.x
+ for x=mx,mx+3 do
+  mset(x,my,TID_GRASS_NOMOVE)
+ end
+ return s
+end
+
+function create_elephant(mx,my)
+ e=obj({
+  pos=v2(mx*8,my*8),
+  bounds0=v2(mx*8-4, my*8-8),
+  bounds1=v2(mx*8+11,my*8+7),
+  shadow=function(_ENV)
+   elli(pos.x+4,pos.y+7,7,2,C_DARKGREY)
+  end,
+  draw=function(_ENV)
+   spr(SID_ELEPHANT, pos.x-4, pos.y-8,
+    C_TRANSPARENT, 1,0,0, 2,2)
+  end,
+ })
+ e.order,e.order2=e.pos.y,e.pos.x
+ mset(mx,my,TID_GRASS_NOMOVE)
+ return e
+end
+
+function create_bush(mx,my)
+ local dx,dy=rnd(4)//1,rnd(7)//1
+ b=obj({
+  pos=v2(mx*8+dx,my*8+dy),
+  bounds0=v2(mx*8+dx-8,my*8+dy-8),
+  bounds1=v2(mx*8+dx+7,my*8+dy+7),
+  flip=flr(rnd(2)),
+  shadow=function(_ENV)
+   elli(pos.x,pos.y+7,8,2,C_DARKGREY)
+  end,
+  draw=function(_ENV)
+   spr(SID_BUSH, pos.x-8, pos.y-8,
+    C_TRANSPARENT, 1,flip,0, 2,2)
+  end,
+ })
+ b.order,b.order2=b.pos.y,b.pos.x
+ -- bushes block balloons
+ mset(mx,my,TID_GRASS_NOBALLOON)
+ return b
+end
+
+ALL_SIGNS={
+ [3]={
+  {h=3,ft=function(spos) spr(227,spos.x+4,spos.y-16+3,10, 1,0,0, 2,2) end},
+ },
+ [4]={
+  {h=3,ft=function(spos) print("A Good\n  Sign",spos.x+6,spos.y-16+6,C_DARKGREY,false,1,true) end},
+ },
+ [5]={
+  {h=3,ft=function(spos) print("Park at\nown risk",spos.x+6,spos.y-16+6,C_DARKGREY,false,1,true) end},
+  {h=3,ft=function(spos) print("Dewdrop\nGardens",spos.x+6,spos.y-16+6,C_DARKGREY,false,1,true) end},
+  {h=3,ft=function(spos) print("Have fun\nout there!",spos.x+6,spos.y-16+6,C_DARKGREY,false,1,true) end},
+ },
+ [6]={
+  {h=3,ft=function(spos) print("NO CAMPING\n  ALLOWED!",spos.x+6,spos.y-16+6,C_DARKGREY,false,1,true) end},
+  {h=3,ft=function(spos) print("NOTHING TO\nSEE HERE.",spos.x+6,spos.y-16+6,C_DARKGREY,false,1,true) end},
+ },
+}
+function create_sign(mx,my)
+ -- determine width of sign
+ local mx2=mx
+ while true do
+  if mget(mx2+1,my)~=TID_SPAWN_SIGN then
+   break
+  end
+  mx2=mx2+1
+ end
+ local sw=1+mx2-mx
+ -- choose a random sign from ALL_SIGNS
+ -- based on sign width
+ if not ALL_SIGNS[sw] then
+  trace("ERROR: No signs available of width "..sw.." for sign at "..mx..","..my)
+  exit()
+ end
+ local src=rndt(ALL_SIGNS[sw])
+ s=obj({
+  pos=v2(mx*8,my*8),
+  bounds0=v2(mx*8, my*8-(src.h-1)*8),
+  bounds1=v2(mx*8+sw*8-1, my*8+7),
+  ft=src.ft,
+  w=sw,
+  h=src.h,
+  shadow=function(_ENV)
+   rect(pos.x,pos.y+7,sw*8,3,C_DARKGREY)
+  end,
+  draw=function(_ENV)
+   local sx,sy=pos.x,
+               pos.y+8-(src.h*8)
+   spr(SID_SIGN, sx,sy,C_TRANSPARENT,
+       1,0,0, 1,src.h)
+   for i=1,sw-2 do
+    spr(SID_SIGN+1, sx+i*8,sy,C_TRANSPARENT,
+        1,0,0, 1,src.h)
+   end
+   spr(SID_SIGN+2, sx+sw*8-8,sy,
+       C_TRANSPARENT, 1,0,0, 1,src.h)
+   src.ft(pos)
+  end,
+ })
+ s.order,s.order2=s.pos.y,s.pos.x
+ for x=mx,mx+sw-1 do
+  mset(x,my,TID_GRASS_NOMOVE)
+ end
+ return s
+end
+
 function cb_draw(_ENV)
  clip()
  cls(C_BLACK)
@@ -1559,95 +1665,16 @@ function cb_draw(_ENV)
     })
    end
   end
-  -- draw trees
-  for _,t in ipairs(trees) do
+  -- draw obstacles (passive scenery)
+  for _,o in ipairs(obstacles) do
    if rects_overlap(cull0,cull1,
-       t.bounds0, t.bounds1) then
-    elli(t.pos.x+4, t.pos.y+7,
-     10,3,C_DARKGREY)
+       o.bounds0, o.bounds1) then
+    o:shadow()
     add(draws,{
-     order=t.pos.y+1, order2=t.pos.x,
-     f=function(t)
-      spr(SID_TREE,t.pos.x-8,t.pos.y-24,
-       C_TRANSPARENT, 1,t.flip,0, 3,4)
-     end, args={t}
-    })
-   end
-  end
-  -- draw bushes
-  for _,b in ipairs(bushes) do
-   if rects_overlap(cull0,cull1,
-       b.bounds0, b.bounds1) then
-    elli(b.pos.x,b.pos.y+7,
-         8,2,C_DARKGREY)
-    add(draws,{
-     order=b.pos.y, order2=b.pos.x,
-     f=function(b)
-      spr(SID_BUSH, b.pos.x-8, b.pos.y-8,
-       C_TRANSPARENT, 1,b.flip,0, 2,2)
-     end, args={b}
-    })
-   end
-  end
-  -- draw signs
-  for _,s in ipairs(signs) do
-   if rects_overlap(cull0,cull1,
-       s.bounds0, s.bounds1) then
-    rect(s.pos.x-1,s.pos.y+5,
-         2+s.w*8,3,C_DARKGREY)
-    add(draws,{
-     order=s.pos.y, order2=s.pos.x,
-     f=function(s)
-      draw_sign(s)
-     end, args={s}
-    })
-   end
-  end
-  -- draw monkey bars
-  for _,m in ipairs(mbars) do
-   if rects_overlap(cull0,cull1,
-       m.bounds0, m.bounds1) then
-    line(m.pos.x,m.pos.y+7,
-         m.pos.x+23,m.pos.y+7,C_DARKGREY)
-    line(m.pos.x+6,m.pos.y+5,
-         m.pos.x+17,m.pos.y+5,C_DARKGREY)
-    add(draws,{
-     order=m.pos.y, order2=m.pos.x,
-     f=function(m)
-      spr(SID_MBARS, m.pos.x, m.pos.y-16,
-       m.colorkey, 1,0,0, 3,3)
-     end, args={m}
-    })
-   end
-  end
-  -- draw swings
-  for _,s in ipairs(swings) do
-   if rects_overlap(cull0,cull1,
-       s.bounds0, s.bounds1) then
-    line(s.pos.x+1,s.pos.y+5,
-         s.pos.x+26,s.pos.y+5,C_DARKGREY)
-    elli(s.pos.x+10,s.pos.y+6,4,1,C_DARKGREY)
-    elli(s.pos.x+21,s.pos.y+6,4,1,C_DARKGREY)
-    add(draws,{
-     order=s.pos.y, order2=s.pos.x,
-     f=function(s)
-      spr(SID_SWING, s.pos.x, s.pos.y-16,
-       C_TRANSPARENT, 1,0,0, 4,3)
-     end, args={s}
-    })
-   end
-  end
-  -- draw elephants
-  for _,e in ipairs(elephants) do
-   if rects_overlap(cull0,cull1,
-       e.bounds0,e.bounds1) then
-    elli(e.pos.x+4,e.pos.y+7,7,2,C_DARKGREY)
-    add(draws,{
-     order=e.pos.y, order2=e.pos.x,
-     f=function(e)
-      spr(SID_ELEPHANT, e.pos.x-4, e.pos.y-8,
-       C_TRANSPARENT, 1,0,0, 2,2)
-     end, args={e}
+     order=o.order, order2=o.order2,
+     f=function(o)
+      o:draw()
+     end, args={o}
     })
    end
   end
@@ -1775,20 +1802,6 @@ function draw_balloon(x,y,r,color,t,t1)
              r+cos(1.5+.04*t)/2
  elli(x,y-yoff,rx+1,ry+1,C_BLACK)
  elli(x,y-yoff,rx,ry,color)
-end
-
-function draw_sign(s)
- local sx,sy=s.pos.x,
-             s.pos.y+8-(s.h*8)
- spr(SID_SIGN, sx,sy,C_TRANSPARENT,
-     1,0,0, 1,s.h)
- for i=1,s.w-2 do
-  spr(SID_SIGN+1, sx+i*8,sy,C_TRANSPARENT,
-      1,0,0, 1,s.h)
- end
- spr(SID_SIGN+2, sx+s.w*8-8,sy,
-     C_TRANSPARENT, 1,0,0, 1,s.h)
- s.ft(s)
 end
 
 function draw_player(player)
