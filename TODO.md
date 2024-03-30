@@ -15,7 +15,6 @@ TODO:
   - remove "kill everyone but player one" hack
 - art
   - add actual title logo to main menu
-  - rock sprites
   - picnic blanket tiles
   - sand tiles? (slow running)
   - Basketball hoop sprites
@@ -78,3 +77,4 @@ X AI [defer to quadplay]
 * seesaw sprites
 * toilet sprites
 * add "no shadows" sprite flag. Add to wall tiles. draw them after the main shadow pass, but before sorted draws.
+* rock sprites
