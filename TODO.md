@@ -11,14 +11,12 @@ TODO:
   - deeper water is instant death. Player disappears in a splash
   - shallow water is slowdown / energy drain. (draw players offset a few pixels lower, clip off their legs, add particles)
 - bugs
+  - add helper to guess what the background a spawned object should be replaced with. Look at surrounding tiles, count grass/pavement/water, and go with whatever you see the most of.
+  - add "no shadows" sprite flag. Add to wall tiles. clip shadow drawing against these tiles (or just draw them after the main shadow pass, but before sorted draws?
   - remove "kill everyone but player one" hack
-  - players should collide with other players
-  - dark green drop-shadows don't look right over paths. avoid placing pushes and trees to the left/right of paths? Crazy shadow-clipping?
-  - drop-shadows draw over neighboring walls. THAT should be solved with clipping.
 - art
+  - add actual title logo to main menu
   - rock sprites
-  - seesaw sprites
-  - toilet sprites
   - winning player animation
   - losing player animation
   - sparkles on refill stations to make them stand out more
@@ -74,3 +72,5 @@ X AI [defer to quadplay]
 * move refill station cooldown from per-player to per-station
 * more sign variety
 * tiles for streams & ponds
+* seesaw sprites
+* toilet sprites
