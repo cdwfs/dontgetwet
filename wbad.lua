@@ -1119,6 +1119,7 @@ function cb_init_players(cb)
   p.vpcenter=v2(
    pclip[1]+pclip[3]/2,
    pclip[2]+pclip[4]/2)
+  p.focus=v2cpy(p.pos)
  end
 end
 
