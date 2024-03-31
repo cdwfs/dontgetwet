@@ -7,7 +7,6 @@ TODO:
 - help screen
 - credits screen
 - gameplay features
-  - sudden death. (everyone gets one last refill, and then all refill stations disappear)
 - bugs
   - add helper to guess what the background a spawned object should be replaced with. Look at surrounding tiles, count grass/pavement/water, and go with whatever you see the most of.
   - remove "kill everyone but player one" hack
@@ -80,4 +79,4 @@ X AI [defer to quadplay]
 * rock sprites
 * deeper water is instant death. Player disappears in a splash
 * shallow water is slowdown / energy drain. (draw players offset a few pixels lower, clip off their legs, add splash particles)
-
+* sudden death. (everyone gets one last refill, and then all refill stations disappear)
