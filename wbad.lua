@@ -1992,10 +1992,6 @@ function draw_player(player)
  if p.dir.y<0 then face=p.faceu
  elseif p.dir.y>0 then face=p.faced
  end
- -- head-bob?
- --local facey=(not v2eq(p.move,v2zero)
- --             and p.anims.s[1].i==1)
- --  and p.pos.y-7 or p.pos.y-8
  local PAL_C1=6
  local PAL_C2=2
  local PAL_H=12
@@ -2008,9 +2004,18 @@ function draw_player(player)
  poke4(2*0x03FF0+PAL_C2,p.color2)
  poke4(2*0x03FF0+PAL_H,p.hairc)
  poke4(2*0x03FF0+PAL_S,p.skinc)
- spr(p.anims.v,p.pos.x-4,p.pos.y,
+ local ybody,yface=p.pos.y,p.pos.y-8
+ -- head-bob?
+ --local ai=p.anims.s[1].i
+ --local ac=p.anims.s[1].c
+ --if not v2eq(p.move,v2zero)
+ --and (ai==1 or ai==3)
+ --and (ac>=4 and ac<=5) then
+ -- yface=yface+1
+ --end
+ spr(face,p.pos.x-4,yface,
      C_TRANSPARENT, 1,p.hflip,0, 2,1)
- spr(face,p.pos.x-4,p.pos.y-8,
+ spr(p.anims.v,p.pos.x-4,ybody,
      C_TRANSPARENT, 1,p.hflip,0, 2,1)
  poke4(2*0x03FF0+PAL_C1,prevc1)
  poke4(2*0x03FF0+PAL_C2,prevc2)
