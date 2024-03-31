@@ -1,32 +1,31 @@
 TODO:
-- music
-  - helper to find an available sound channel for sfx. Needs to handle being called multiple times a frame.
-  - menu
-  - in-game
-  - victory
-- help screen
-- credits screen
-- gameplay features
-- bugs
-  - add helper to guess what the background a spawned object should be replaced with. Look at surrounding tiles, count grass/pavement/water, and go with whatever you see the most of.
-  - remove "kill everyone but player one" hack
-- art
-  - add actual title logo to main menu
-  - picnic blanket tiles
-  - sand tiles? (slow running)
-  - Basketball hoop sprites
-  - winning player animation
-  - losing player animation
-  - up & down leg animations are currently the same. Differentiate? Add a tshirt logo?
-- fun eye candy
-  - Player disappears in a splash in deep water
-  - draw players offset a few pixels lower in shallow water, clip off their legs, add splash particles when they move
-  - sparkles on refill stations to make them stand out more
-  - mode transition: dozens of balloons fly at the screen and explode in splashes, which wash away to reveal the new mode
-  - victory screen: a steady rain of the winning team's balloons falling and exploding on losing players
-  - spawn droplets in player rect after getting hit with balloon
-  - wet footprints after leaving water or getting hit
-  - head bob
+- music: main menu
+- music: in-game
+- music: sudden death
+- music: victory
+- feature: helper to find an available sound channel for sfx. Needs to handle being called multiple times a frame.
+- ui: about screen
+- ui: help screen
+- ui: credits screen
+- bug: guess what the background a spawned object should be replaced with. Look at surrounding tiles, count grass/pavement/water, and go with whatever you see the most of.
+- bug: remove "kill everyone but player one" hack
+- feature: push_clip()/pop_clip() helpers to temporarily restrict drawing to an even smaller area
+- art: new palette for menus, with a darker background instead of something unused.
+- art: add actual title logo to main menu
+- art: picnic blanket tiles
+- art: sand tiles? (slow running)
+- art: Basketball hoop sprites
+- art: winning player animation
+- art: losing player animation
+- art: up & down leg animations are currently the same. Differentiate? Add a tshirt logo?
+- fx: Player disappears in a splash in deep water
+- fx: draw players offset a few pixels lower in shallow water, clip off their legs, add splash particles when they move
+- fx: sparkles on refill stations to make them stand out more
+- fx: mode transition: dozens of balloons fly at the screen and explode in splashes, which wash away to reveal the new mode
+- fx: victory screen: a steady rain of the winning team's balloons falling and exploding on losing players
+- fx: spawn droplets in player rect after getting hit with balloon
+- fx: wet footprints after leaving water or getting hit
+- fx: head bob. For ABCB walk cycle, draw head one pixel lower when moving in the middle of the A and C frames. [tried it, it doesn't look right]
   
 DONE:
 * strip invisibrawl arrows/blood code
@@ -80,3 +79,4 @@ X AI [defer to quadplay]
 * deeper water is instant death. Player disappears in a splash
 * shallow water is slowdown / energy drain. (draw players offset a few pixels lower, clip off their legs, add splash particles)
 * sudden death. (everyone gets one last refill, and then all refill stations disappear)
+* About/Help/Credits navigation
