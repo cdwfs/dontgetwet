@@ -619,9 +619,11 @@ function menu_update(_ENV)
  -- input
  if not ignore_input then
   if btnp(0) then
-   selected=(selected+2)%3
+   sfx(SFX_MENU_MOVE,"D-5",-1,1)
+   selected=(selected+1)%2
   elseif btnp(1) then
-   selected=(selected+1)%3
+   sfx(SFX_MENU_MOVE,"D-5",-1,1)
+   selected=(selected+1)%2
   end
   if btnp(4) then
    sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
@@ -834,23 +836,27 @@ end
 function team_update(_ENV)
  -- input
  if not ignore_input then
+  local pid_notes={2,9,-2,6}
   for pid,p in ipairs(players) do
    local pb0=8*(pid-1)
    -- check for P2-P4 joining/leaving
    if pid>1 and state[pid]==K_IDLE
    and btnp(pb0+4) then
+    sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
     state[pid]=K_JOINED
    elseif pid>1 and state[pid]==K_JOINED
    and btnp(pb0+5) then
+    sfx(SFX_MENU_CANCEL,"D-5",-1,1)
     state[pid]=K_IDLE
    -- joined players can change teams
    elseif state[pid]==K_JOINED then
     if btnp(pb0+2) then
-     p.team=mod1n(p.team+1,4)
+     sfx(SFX_MENU_MOVE,4*12+pid_notes[pid],-1,1)
+     p:set_team(mod1n(p.team+1,4))
     elseif btnp(pb0+3) then
-     p.team=mod1n(p.team+3,4)
+     sfx(SFX_MENU_MOVE,4*12+pid_notes[pid],-1,1)
+     p:set_team(mod1n(p.team+3,4))
     end
-    p:set_team(p.team)
    end
   end
   -- Check if we can start the game.
