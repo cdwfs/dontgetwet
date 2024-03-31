@@ -319,6 +319,20 @@ function mod1n(x,n)
  return ((x-1)%n)+1
 end
 
+-- returns ID of button sprite
+-- for a button.
+-- if show_press isn't nil, show
+-- the live state of the button.
+-- if pid is non-nil, read that
+-- player's button (1-4)
+function btnspr(b,show_press,pid)
+ pid=pid or 1
+ local pressed=
+  (show_press and btn(8*(pid-1)+b))
+  and 16 or 0
+ return TID_BTN0+b+pressed
+end
+
 -- return random element from a table
 function rndt(t)
  return t[math.random(#t)]
@@ -528,8 +542,7 @@ function BOOT()
   trace("**BOOT** "..tstamp()//1000)
   mode_enters={
   menu=menu_enter,
-  help=help_enter,
-  credits=cred_enter,
+  about=about_enter,
   teams=team_enter,
   combat=cb_enter,
   victory=vt_enter,
@@ -640,9 +653,7 @@ function menu_update(_ENV)
      if selected==0 then
       set_next_mode("teams",{})
      elseif selected==1 then
-      set_next_mode("help",{})
-     elseif selected==2 then
-      set_next_mode("credits",{})
+      set_next_mode("about",{})
      end
     end,
     30)
@@ -657,21 +668,20 @@ function menu_draw(_ENV)
  spr(128, 48,4, C_TRANSPARENT, 1,0,0,
      16,5)
  dsprint("Play",46,89,
-         selected==0 and C_WHITE or C_LIGHTGREY,
-         C_BLACK,true)
- dsprint("Help",46,97,
-         selected==1 and C_WHITE or C_LIGHTGREY,
-         C_BLACK,true)
- dsprint("Credits",46,105,
-         selected==2 and C_WHITE or C_LIGHTGREY,
-         C_BLACK,true)
+  selected==0 and C_WHITE or C_LIGHTGREY,
+  C_BLACK,true)
+ dsprint("About",46,97,
+  selected==1 and C_WHITE or C_LIGHTGREY,
+  C_BLACK,true)
+ spr(btnspr(4,1),36,88+8*selected,
+  C_TRANSPARENT)
 end
 
------- HELP
+------ ABOUT
 
-mode_help={}
+mode_about={}
 
-function help_enter(args)
+function about_enter(args)
  sync(1|2|4|32,0)
  camera(0,0)
  cls(0)
@@ -684,25 +694,43 @@ function help_enter(args)
   end,
   function() fade_black(0) end,
   30)
- mode_help=obj({
-  update=help_update,
-  draw=help_draw,
-  leave=help_leave,
+ mode_about=obj({
+  update=about_update,
+  draw=about_draw,
+  leave=about_leave,
   ignore_input=false,
+  screens={"Help","About","Credits"},
+  screen=1,
+  scroll=0,
+  scroll_max={60,0,0}, -- per screen
  })
- return mode_help
+ return mode_about
 end
 
-function help_leave(_ENV)
+function about_leave(_ENV)
  clip()
  music()
 end
 
-function help_update(_ENV)
+function about_update(_ENV)
  -- input
  if not ignore_input then
+  if btn(0) then
+   scroll=max(0,scroll-1)
+  end
+  if btn(1) then
+   scroll=min(scroll_max[screen],scroll+1)
+  end
+  if btnp(2) then
+   sfx(SFX_MENU_MOVE,"D-5",-1,1)
+   scroll,screen=0,mod1n(screen+1,#screens)
+  end
+  if btnp(3) then
+   sfx(SFX_MENU_MOVE,"D-5",-1,1)
+   scroll,screen=0,mod1n(screen+#screens-1,#screens)
+  end
   if btnp(5) then
-   sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
+   sfx(SFX_MENU_CANCEL,"D-5",-1,1)
    ignore_input=true
    -- fade to black & advance to next mode
    add_frame_hook(
@@ -710,75 +738,52 @@ function help_update(_ENV)
      fade_black((ntotal-nleft)/ntotal)
     end,
     function()
-     set_next_mode("menu",{
-     })
+     set_next_mode("menu",{})
     end,
     30)
   end
  end
 end
 
-function help_draw(_ENV)
- cls(C_DARKGREY)
- print("Help goes here!",50,50,C_WHITE)
- print("(B) Back", 40,124,C_WHITE)
-end
-
------- CREDITS
-
-mode_cred={}
-
-function cred_enter(args)
- sync(1|2|4|32,0)
- camera(0,0)
- cls(0)
- -- fade in from black
- fade_init_palette()
- fade_black(1)
- add_frame_hook(
-  function(nleft,ntotal)
-   fade_black(nleft/ntotal)
-  end,
-  function() fade_black(0) end,
-  30)
- mode_cred=obj({
-  update=cred_update,
-  draw=cred_draw,
-  leave=cred_leave,
-  ignore_input=false,
- })
- return mode_cred
-end
-
-function cred_leave(_ENV)
+function about_draw(_ENV)
+ cls(C_BLACK)
+ camera()
+ -- navigation controls
+ local sprev=mod1n(screen+1,#screens)
+ local snext=mod1n(screen+#screens-1,#screens)
+ local mnext=screens[snext]
+ spr(btnspr(2,1),1,1, C_TRANSPARENT)
+ spr(btnspr(3,1),K_SCREEN_W-9,1, C_TRANSPARENT)
+ dsprint(screens[sprev],10,2,C_WHITE,C_DARKGREY,true)
+ dsprint(mnext,K_SCREEN_W-10-6*#mnext,2,C_WHITE,C_DARKGREY,true)
+ spr(btnspr(0,1),1,K_SCREEN_H-9, C_TRANSPARENT)
+ spr(btnspr(1,1),10,K_SCREEN_H-9, C_TRANSPARENT)
+ dsprint("Scroll",19,K_SCREEN_H-8,C_WHITE,C_DARKGREY,true)
+ spr(btnspr(5,1),K_SCREEN_W-34,K_SCREEN_H-9, C_TRANSPARENT)
+ dsprint("Back",K_SCREEN_W-25,K_SCREEN_H-8,C_WHITE,C_DARKGREY,true)
+ -- screen background
+ rect(0,9,K_SCREEN_W-1,K_SCREEN_H-19,4)
+ clip(0,9,K_SCREEN_W,K_SCREEN_H-19)
+ camera(0,scroll)
+ if screen==1 then
+  -- instructions
+  for i=1,30 do
+   dsprint("Lots of really long text "..i,2,2+8*i,C_WHITE,C_BLACK)
+  end
+ elseif screen==2 then
+  -- about
+  dsprint("About the game",2,10,C_WHITE,C_BLACK)
+ elseif screen==3 then
+  -- credits
+  dsprint("Code, Music: Cort Stratton",2,10,C_WHITE,C_BLACK,true)
+  dsprint("  Pixel Art: Donald Conrad",2,18,C_WHITE,C_BLACK,true)
+  dsprint(" QA, Antics: Peter M.J. Gross",2,26,C_WHITE,C_BLACK,true)
+  dsprint("Special Thx: Lesley, Mindy",2,34,C_WHITE,C_BLACK,true)
+  dsprint("bitterlyindifferent.itch.io",40,62,C_LIGHTBLUE,C_BLACK,true)
+  dsprint("    postgoodism.itch.io",40,70,C_LIGHTBLUE,C_BLACK,true)
+ end
  clip()
- music()
-end
-
-function cred_update(_ENV)
- -- input
- if not ignore_input then
-  if btnp(5) then
-   sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
-   ignore_input=true
-   -- fade to black & advance to next mode
-   add_frame_hook(
-    function(nleft,ntotal)
-     fade_black((ntotal-nleft)/ntotal)
-    end,
-    function()
-     set_next_mode("menu",{
-     })
-    end,
-    30)
-  end
- end
-end
-
-function cred_draw(_ENV)
- cls(C_DARKGREY)
- print("Credits go here!",50,50,C_WHITE)
- print("(B) Back", 40,124,C_WHITE)
+ camera()
 end
 
 ------ TEAMS
@@ -913,7 +918,7 @@ function team_update(_ENV)
 end
 
 function team_draw(_ENV)
- cls(C_DARKGREY)
+ cls(4)
  dsprint("SELECT TEAMS",52,2,
   C_WHITE,C_BLACK,false,2)
  for pid,p in ipairs(players) do
@@ -922,19 +927,26 @@ function team_draw(_ENV)
    C_WHITE,C_BLACK)
   if state[pid]==K_JOINED then
    draw_player(p)
-   local dx=(mode_frames//30)%2
-   print("<",p.pos.x-7-dx,p.pos.y-2,C_WHITE,true)
-   print(">",p.pos.x+10+dx,p.pos.y-2,C_WHITE,true)
+   spr(btnspr(2,1,pid),p.pos.x-11,p.pos.y-2,C_TRANSPARENT)
+   spr(btnspr(3,1,pid),p.pos.x+11,p.pos.y-2,C_TRANSPARENT)
   else
-   dsprint("Press\n (A)",
-    p.pos.x-10, p.pos.y-8,
-    TEAM_COLORS[mod1n(pid+mode_frames//10,#TEAM_COLORS)],
+   dsprint("Join",p.pos.x-7, p.pos.y-8,
+    TEAM_COLORS[mod1n(pid+mode_frames//8,#TEAM_COLORS)],
     C_BLACK,true,1,false)
+   spr(btnspr(4),p.pos.x+1,p.pos.y,C_TRANSPARENT)
   end
  end
- print("(B) Back", 40,124,C_WHITE)
- print("(A) Play!", 160,124,
-  can_play and C_WHITE or C_LIGHTGREY)
+ -- navigation controls
+ if can_play then
+  spr(btnspr(4,1),1,K_SCREEN_H-9, C_TRANSPARENT)
+  dsprint("Play",10,K_SCREEN_H-8,C_WHITE,C_DARKGREY,true)
+ else
+  dsprint("Invalid Teams",1,K_SCREEN_H-8,
+   TEAM_COLORS[mod1n(mode_frames//10,#TEAM_COLORS)],
+   C_DARKGREY,true)
+ end
+ spr(btnspr(5,1),K_SCREEN_W-34,K_SCREEN_H-9, C_TRANSPARENT)
+ dsprint("Back",K_SCREEN_W-25,K_SCREEN_H-8,C_WHITE,C_DARKGREY,true)
 end
 
 ------ COMBAT
@@ -2181,7 +2193,8 @@ function vt_draw(_ENV)
  for _,d in ipairs(drops) do
   pix(d.pos.x,d.pos.y,C_LIGHTBLUE)
  end
- print("(A) Rematch!",40,124,C_WHITE)
+  spr(btnspr(4,1),1,K_SCREEN_H-9, C_TRANSPARENT)
+  dsprint("Rematch",10,K_SCREEN_H-8,C_WHITE,C_DARKGREY,true)
 end
 -- <TILES>
 -- 000:3333333333333333333333333333333333333333333333333333333333333333
