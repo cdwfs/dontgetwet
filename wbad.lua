@@ -1075,12 +1075,7 @@ function cb_enter(args)
    elseif tid==TID_SPAWN_ROCK2 then
     add(cb.obstacles,create_rock(mx,my))
    elseif tid==TID_SPAWN_REFILL then
-    add(cb.refills,{
-     pos=v2(mx*8,my*8),
-     bounds0=v2(mx*8-5, my*8),
-     bounds1=v2(mx*8+5, my*8+8),
-     cooldown=0,
-    })
+    add(cb.refills,create_refill(mx,my))
     mset(mx,my,rndt(TID_GRASS_POOL))
    elseif tid==TID_SPAWN_PLAYER then
     add(cb.player_spawns,v2(mx,my))
@@ -1521,6 +1516,9 @@ function cb_update(_ENV)
   if r.cooldown>0 then
    r.cooldown=r.cooldown-1
   else
+   for _,s in ipairs(r.sparkles) do
+    s:update()
+   end
    for _,p in ipairs(players) do
     if not p.eliminated
     and rects_overlap(
@@ -1857,6 +1855,52 @@ function create_rock(mx,my)
  return r
 end
 
+function create_refill(mx,my)
+ local r={
+  pos=v2(mx*8,my*8),
+  bounds0=v2(mx*8-5, my*8),
+  bounds1=v2(mx*8+5, my*8+8),
+  cooldown=0,
+  sparkles={}
+ }
+ for i=1,10 do
+  local s=obj({
+   ttl=0,
+   reset=function(self)
+    self.pos=v2(r.pos.x+1+flr(rnd(7)),
+                r.pos.y+1)
+    self.ttl=flr(rnd(25,35))
+   end,
+   update=function(self)
+    if self.ttl==0 then
+     self:reset()
+    else
+     self.ttl=self.ttl-1
+     self.pos.x=self.pos.x+0.4*rnd(1)-0.2
+     self.pos.y=self.pos.y-0.3
+    end
+   end,
+   draw=function(self)
+    local grad={
+     C_DARKBLUE,
+     C_LIGHTBLUE,
+     C_LIGHTBLUE,
+     C_LIGHTBLUE,
+     C_WHITE,
+     C_WHITE,
+    }
+    pix(self.pos.x,self.pos.y,
+     grad[clamp(#grad*(self.ttl/20),1,#grad)//1])
+   end,
+  })
+  for j=1,100 do
+   s:update()
+  end
+  add(r.sparkles,s)
+ end
+ return r
+end
+
 function cb_draw(_ENV)
  clip()
  cls(C_BLACK)
@@ -1951,6 +1995,9 @@ function cb_draw(_ENV)
     add(draws,{
      order=r.pos.y, order2=r.pos.x,
      f=function(r)
+      for _,s in ipairs(r.sparkles) do
+       s:draw()
+      end
       spr(SID_REFILL, r.pos.x-4, r.pos.y,
        C_TRANSPARENT, 1,0,0, 2,1)
       if r.cooldown>0 then
