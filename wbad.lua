@@ -1423,8 +1423,8 @@ function cb_update(_ENV)
    p.anims:nextv()
   end
   -- Update player's camera focus.
-  p.focus.x=approach(p.focus.x,p.pos.x+4,.2)//1
-  p.focus.y=approach(p.focus.y,p.pos.y+4,.2)//1
+  p.focus.x=approach(p.focus.x,p.pos.x+4,.1)//1
+  p.focus.y=approach(p.focus.y,p.pos.y+4,.1)//1
   -- handle throwing balloons
   if p.ammo>0 and btn(pb0+5) then
    if p.windup==0 then
