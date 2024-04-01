@@ -2007,7 +2007,7 @@ function cb_draw(_ENV)
   and mode_frames<K_SUDDEN_DEATH_START then
    dsprint("REFILL!",
          p.vpcenter.x-12,p.vpcenter.y+20,
-         C_WHITE,C_DARKGREY)
+         C_RED,C_DARKGREY)
    local pc=p.focus
    local closest=v2(math.huge,math.huge)
    local closest_d2=v2dstsq(pc,closest)
@@ -2027,7 +2027,7 @@ function cb_draw(_ENV)
      min(mode_frames%30,closest_d))
     circ(p.vpcenter.x+closest_dir.x,
         p.vpcenter.y+closest_dir.y,
-        1,C_WHITE)
+        1,C_RED)
    end
   end
   -- draw "game over" message for eliminated players
