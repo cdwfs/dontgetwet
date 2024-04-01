@@ -1,27 +1,25 @@
 TODO:
-- feature: helper to find an available sound channel for sfx. Needs to handle being called multiple times a frame.
+- fx: sparkles on refill stations to make them stand out more
+- fx: Player disappears in a splash in deep water
+- fx: spawn splash particles when characters enter or move in water
+- fx: spawn droplets in player rect after getting hit with balloon
+- fx: wet footprints after leaving water or getting hit
 - ui: about screen
 - ui: help screen
 - ui: credits screen
 - bug: guess what the background a spawned object should be replaced with. Look at surrounding tiles, count grass/pavement/water, and go with whatever you see the most of.
 - bug: remove "kill everyone but player one" hack
-- feature: push_clip()/pop_clip() helpers to temporarily restrict drawing to an even smaller area
 - art: new palette for menus, with a darker background instead of something unused.
 - art: add actual title logo to main menu
-- art: picnic blanket tiles
+- fx: mode transition: dozens of balloons fly at the screen and explode in splashes, which wash away to reveal the new mode
+- fx: victory screen: a steady rain of the winning team's balloons falling and exploding on losing players
+- feature: enable hidden characters. Check for button combo at player creation time?
+- sound: unique sfx for players on left & right side of the screen
 - art: sand tiles? (slow running)
 - art: Basketball hoop sprites
 - art: winning player animation
 - art: losing player animation
 - art: up & down leg animations are currently the same. Differentiate? Add a tshirt logo?
-- fx: Player disappears in a splash in deep water
-- fx: draw players offset a few pixels lower in shallow water, clip off their legs, add splash particles when they move
-- fx: sparkles on refill stations to make them stand out more
-- fx: mode transition: dozens of balloons fly at the screen and explode in splashes, which wash away to reveal the new mode
-- fx: victory screen: a steady rain of the winning team's balloons falling and exploding on losing players
-- fx: spawn droplets in player rect after getting hit with balloon
-- fx: wet footprints after leaving water or getting hit
-- sound: unique sfx for players on left & right side of the screen
   
 DONE:
 * strip invisibrawl arrows/blood code
@@ -81,3 +79,9 @@ X AI [defer to quadplay]
 X fx: head bob. For ABCB walk cycle, draw head one pixel lower when moving in the middle of the A and C frames. [tried it, it doesn't look right]
 * music: victory
 * music: main menu
+X feature: helper to find an available sound channel for sfx. Needs to handle being called multiple times a frame. [didn't end up needing it]
+* feature: push_clip()/pop_clip() helpers to temporarily restrict drawing to an even smaller area
+* vertically offset players standing in shallow water, with a splash sound when they enter
+* bug: add player velocity to initial balloon velocity
+* bug: diagonal balloons are thrown too far
+* art: picnic blanket tiles
