@@ -69,6 +69,8 @@ K_SPLASH_DIST=14
 K_SCREEN_W=240
 K_SCREEN_H=136
 K_SUDDEN_DEATH_START=60*60*3
+K_CHAN_NOISE=2
+K_CHAN_SFX=3
 -- palette color indices
 TEAM_COLORS={6,12,13,10}
 TEAM_COLORS2={2,9,4,11}
@@ -637,14 +639,14 @@ function menu_update(_ENV)
  -- input
  if not ignore_input then
   if btnp(0) then
-   sfx(SFX_MENU_MOVE,"D-5",-1,1)
+   sfx(SFX_MENU_MOVE,"D-5",-1,K_CHAN_SFX)
    selected=(selected+1)%2
   elseif btnp(1) then
-   sfx(SFX_MENU_MOVE,"D-5",-1,1)
+   sfx(SFX_MENU_MOVE,"D-5",-1,K_CHAN_SFX)
    selected=(selected+1)%2
   end
   if btnp(4) then
-   sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
+   sfx(SFX_MENU_CONFIRM,"D-5",-1,K_CHAN_SFX)
    ignore_input=true
    -- fade to black & advance to next mode
    add_frame_hook(
@@ -724,15 +726,15 @@ function about_update(_ENV)
    scroll=min(scroll_max[screen],scroll+1)
   end
   if btnp(2) then
-   sfx(SFX_MENU_MOVE,"D-5",-1,1)
+   sfx(SFX_MENU_MOVE,"D-5",-1,K_CHAN_SFX)
    scroll,screen=0,mod1n(screen+1,#screens)
   end
   if btnp(3) then
-   sfx(SFX_MENU_MOVE,"D-5",-1,1)
+   sfx(SFX_MENU_MOVE,"D-5",-1,K_CHAN_SFX)
    scroll,screen=0,mod1n(screen+#screens-1,#screens)
   end
   if btnp(5) then
-   sfx(SFX_MENU_CANCEL,"D-5",-1,1)
+   sfx(SFX_MENU_CANCEL,"D-5",-1,K_CHAN_SFX)
    ignore_input=true
    -- fade to black & advance to next mode
    add_frame_hook(
@@ -852,19 +854,19 @@ function team_update(_ENV)
    -- check for P2-P4 joining/leaving
    if pid>1 and state[pid]==K_IDLE
    and btnp(pb0+4) then
-    sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
+    sfx(SFX_MENU_CONFIRM,"D-5",-1,K_CHAN_SFX)
     state[pid]=K_JOINED
    elseif pid>1 and state[pid]==K_JOINED
    and btnp(pb0+5) then
-    sfx(SFX_MENU_CANCEL,"D-5",-1,1)
+    sfx(SFX_MENU_CANCEL,"D-5",-1,K_CHAN_SFX)
     state[pid]=K_IDLE
    -- joined players can change teams
    elseif state[pid]==K_JOINED then
     if btnp(pb0+2) then
-     sfx(SFX_MENU_MOVE,4*12+pid_notes[pid],-1,1)
+     sfx(SFX_MENU_MOVE,4*12+pid_notes[pid],-1,K_CHAN_SFX)
      p:set_team(mod1n(p.team+1,4))
     elseif btnp(pb0+3) then
-     sfx(SFX_MENU_MOVE,4*12+pid_notes[pid],-1,1)
+     sfx(SFX_MENU_MOVE,4*12+pid_notes[pid],-1,K_CHAN_SFX)
      p:set_team(mod1n(p.team+3,4))
     end
    end
@@ -884,7 +886,7 @@ function team_update(_ENV)
   can_play=nteams>1
   -- P1's (B) goes back to menu
   if btnp(5) then
-   sfx(SFX_MENU_CANCEL,"D-5",-1,1)
+   sfx(SFX_MENU_CANCEL,"D-5",-1,K_CHAN_SFX)
    ignore_input=true
    add_frame_hook(
     function(nleft,ntotal)
@@ -897,7 +899,7 @@ function team_update(_ENV)
   elseif can_play and btnp(4) then
    -- P1's (A) enters the game
    -- if the teams are valid
-   sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
+   sfx(SFX_MENU_CONFIRM,"D-5",-1,K_CHAN_SFX)
    ignore_input=true
    add_frame_hook(
     function(nleft,ntotal)
@@ -1237,7 +1239,7 @@ function cb_update(_ENV)
   ::end_balloon_update::
   if pop then
    sfx(SFX_BALLOONPOP,6*12+math.random(0,4),
-    -1,2)
+    -1,K_CHAN_NOISE)
    -- check for nearby players and
    -- assign splash damage
    local max_dst2=K_SPLASH_DIST*K_SPLASH_DIST
@@ -1253,7 +1255,7 @@ function cb_update(_ENV)
      -- same frame as "eliminated"
      if p.energy>0 then
       sfx(SFX_PLAYERHIT,3*12+math.random(10,22),
-       -1,1)
+       -1,K_CHAN_SFX)
      end
     end
    end
@@ -1283,7 +1285,7 @@ function cb_update(_ENV)
    p:reset()
    p.eliminated=true
    sfx(SFX_ELIMINATED,4*12+math.random(0,4),
-    -1,0)
+    -1,K_CHAN_SFX)
    -- TODO other time-of-elimination
    -- effects go here
   end
@@ -1295,7 +1297,7 @@ function cb_update(_ENV)
    p:reset()
    p.eliminated=true
    sfx(SFX_ELIMINATED,4*12+math.random(0,4),
-    -1,0)
+    -1,K_CHAN_SFX)
    -- TODO other time-of-drowning
    -- effects go here
   end
@@ -1413,13 +1415,13 @@ function cb_update(_ENV)
   if p.ammo>0 and btn(pb0+5) then
    if p.windup==0 then
     sfx(SFX_WINDUP,2*12+math.random(5,9),
-     -1,1)
+     -1,K_CHAN_SFX)
    end
    p.windup=min(K_MAX_WINDUP,p.windup+1)
   elseif not btn(pb0+5)
   and p.windup>0 then
    sfx(SFX_THROW,3*12+math.random(7,11),
-    -1,1)
+    -1,K_CHAN_SFX)
    p.ammo=max(p.ammo-1,0)
    local borig=balloon_origin(p.pos,p.dir)
    add(balloons,{
@@ -1456,7 +1458,7 @@ function cb_update(_ENV)
     and rects_overlap(
         p.pos,v2add(p.pos,v2(7,7)),
         r.pos,v2add(r.pos,v2(7,7))) then
-     sfx(SFX_REFILL,4*12+2,-1,1)
+     sfx(SFX_REFILL,4*12+2,-1,K_CHAN_SFX)
      p.energy=K_MAX_ENERGY
      p.ammo=K_MAX_AMMO
      r.cooldown=K_REFILL_COOLDOWN
@@ -2138,7 +2140,7 @@ function vt_update(_ENV)
   -- for a rematch
   if btnp(0*8+4) or btnp(1*8+4)
   or btnp(2*8+4) or btnp(3*8+4) then
-   sfx(SFX_MENU_CONFIRM,"D-5",-1,1)
+   sfx(SFX_MENU_CONFIRM,"D-5",-1,K_CHAN_SFX)
    set_next_mode("teams",{
     prev_players=players,
    })
