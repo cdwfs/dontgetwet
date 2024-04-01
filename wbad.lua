@@ -2055,8 +2055,12 @@ end
 function balloon_throw_target(p)
  local dist=lerp(K_MIN_THROW,K_MAX_THROW,
              p.windup/K_MAX_WINDUP)
- return v2add(v2add(p.pos,v2(4,4)),
-              v2scl(p.dir,dist))
+ local target=v2add(v2add(p.pos,v2(4,4)),
+                    v2scl(v2norm(p.dir),dist))
+ if not v2eq(p.move,v2zero) then
+  target=v2add(target,v2scl(v2norm(p.move),1))
+ end
+ return target
 end
 
 function balloon_origin(pos,dir)
@@ -2131,10 +2135,11 @@ function draw_player(p)
   draw_balloon(borig.x,borig.y,
    K_BALLOON_RADIUS,p.color)
   local target=balloon_throw_target(p)
-  line(target.x-1,target.y,
-       target.x+1,target.y,C_WHITE)
-  line(target.x,target.y-1,
-       target.x,target.y+1,C_WHITE)
+  for i=1,4 do
+   local pt=v2lerp(borig,target,i/4)
+   pix(pt.x,pt.y,C_WHITE)
+  end
+  circ(target.x,target.y,1,C_WHITE)
  end
 end
 
