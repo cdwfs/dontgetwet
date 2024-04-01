@@ -2066,9 +2066,7 @@ function draw_balloon(x,y,r,color,t,t1)
  elli(x,y-yoff,rx,ry,color)
 end
 
-function draw_player(player)
- local p=player
- -- draw player
+function draw_player(p)
  local face=p.facelr
  if p.dir.y<0 then face=p.faceu
  elseif p.dir.y>0 then face=p.faced
