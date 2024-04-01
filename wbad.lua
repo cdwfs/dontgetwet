@@ -1954,7 +1954,7 @@ function cb_draw(_ENV)
    if closest_d>40 then
     local closest_dir=v2scl(
      v2norm(v2sub(closest,pc)),
-     min(30,closest_d))
+     min(mode_frames%30,closest_d))
     circ(p.vpcenter.x+closest_dir.x,
         p.vpcenter.y+closest_dir.y,
         1,C_WHITE)
