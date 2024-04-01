@@ -892,7 +892,6 @@ end
 
 function team_leave(_ENV)
  clip()
- music()
 end
 
 function team_update(_ENV)
