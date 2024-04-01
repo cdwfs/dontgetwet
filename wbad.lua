@@ -1221,7 +1221,6 @@ function cb_update(_ENV)
  if btnp(7) then
   for _,p in ipairs(players) do
    if p.pid>1 then
-    p:reset()
     p.eliminated=true
    end
   end
@@ -1328,7 +1327,6 @@ function cb_update(_ENV)
     and K_ENERGY_RUN or K_ENERGY_WALK
   p.energy=max(0,p.energy-drain)
   if not p.eliminated and p.energy==0 then
-   p:reset()
    p.eliminated=true
    sfx(SFX_ELIMINATED,4*12+math.random(0,4),
     -1,K_CHAN_SFX)
@@ -1340,7 +1338,6 @@ function cb_update(_ENV)
                   (p.pos.y+4)//8)
   if not p.eliminated
   and fget(mtid,SF_HAZARD) then
-   p:reset()
    p.eliminated=true
    sfx(SFX_ELIMINATED,4*12+math.random(0,4),
     -1,K_CHAN_SFX)
@@ -1351,6 +1348,7 @@ function cb_update(_ENV)
  -- handle input & move players
  for _,p in ipairs(players) do
   if p.eliminated then
+   p.sink=min(16,p.sink+0.25)
    goto player_update_end
   end
   local pb0=8*(p.pid-1)
@@ -1936,7 +1934,7 @@ function cb_draw(_ENV)
        v2add(p2.pos,v2(-8,-8)),
        v2add(p2.pos,v2(8,8))) then
     elli(p2.pos.x+4,p2.pos.y+7,
-         5,2,C_DARKGREY)
+         5,2,p2.eliminated and C_DARKBLUE or C_DARKGREY)
     add(draws,{
      order=p2.pos.y, order2=p2.pos.x,
      f=draw_player, args={p2}
@@ -2051,6 +2049,7 @@ function cb_draw(_ENV)
   end
   -- for low-energy/ammo players, draw "refill" prompt
   if (p.energy<K_ENERGY_WARNING or p.ammo==0)
+  and not p.eliminated
   and mode_frames<K_SUDDEN_DEATH_START then
    dsprint("REFILL!",
          p.vpcenter.x-12,p.vpcenter.y+20,
@@ -2145,14 +2144,24 @@ function draw_player(p)
  local PAL_C2=2
  local PAL_H=12
  local PAL_S=14
- local prevc1=peek4(2*0x03FF0+PAL_C1)
- local prevc2=peek4(2*0x03FF0+PAL_C2)
- local prevh= peek4(2*0x03FF0+PAL_H)
- local prevs= peek4(2*0x03FF0+PAL_S)
- poke4(2*0x03FF0+PAL_C1,p.color)
- poke4(2*0x03FF0+PAL_C2,p.color2)
- poke4(2*0x03FF0+PAL_H,p.hairc)
- poke4(2*0x03FF0+PAL_S,p.skinc)
+ local prevp={} -- palette bytes to restore
+ for i=0,7 do
+  prevp[i]=peek(0x03FF0+i)
+ end
+ if p.eliminated then
+  -- swap to "soaked" palette
+  for i=1,15 do
+   poke4(2*0x03FF0+i,
+    p.sink<10 and C_LIGHTBLUE
+                or C_DARKBLUE)
+  end
+ else
+  -- palette-swap player-specific colors
+  poke4(2*0x03FF0+PAL_C1,p.color)
+  poke4(2*0x03FF0+PAL_C2,p.color2)
+  poke4(2*0x03FF0+PAL_H,p.hairc)
+  poke4(2*0x03FF0+PAL_S,p.skinc)
+ end
  local ybody,yface=p.pos.y+p.sink,
                    p.pos.y+p.sink-8
  -- head-bob?
@@ -2171,10 +2180,9 @@ function draw_player(p)
  spr(p.anims.v,p.pos.x-4,ybody,
      C_TRANSPARENT, 1,p.hflip,0, 2,1)
  pop_clip()
- poke4(2*0x03FF0+PAL_C1,prevc1)
- poke4(2*0x03FF0+PAL_C2,prevc2)
- poke4(2*0x03FF0+PAL_H,prevh)
- poke4(2*0x03FF0+PAL_S,prevs)
+ for i=0,7 do
+  poke(0x03FF0+i,prevp[i])
+ end
  -- draw balloon and reticle
  -- if winding up
  if p.windup>0 then
@@ -2225,6 +2233,7 @@ function vt_enter(args)
  local x0,x1=60,180
  local dx=(x1-x0)/(#vt.players-1)
  for _,p in ipairs(vt.players) do
+  p:reset()
   p.pos=v2(flr(x0+(p.pid-1)*dx-4),
            vt.grnd_y)
   p.y0=vt.grnd_y

@@ -1,5 +1,4 @@
 TODO:
-- fx: Player disappears in a splash in deep water
 - fx: spawn splash particles when characters enter or move in water
 - fx: spawn droplets in player rect after getting hit with balloon
 - fx: wet footprints after leaving water or getting hit
@@ -85,3 +84,4 @@ X feature: helper to find an available sound channel for sfx. Needs to handle be
 * bug: diagonal balloons are thrown too far
 * art: picnic blanket tiles
 * fx: sparkles on refill stations to make them stand out more
+* fx: Eliminated players turn blue and sink into the ground, leaving a dark blue puddle
