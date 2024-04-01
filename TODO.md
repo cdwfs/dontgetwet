@@ -1,8 +1,5 @@
 TODO:
 - music: main menu
-- music: in-game
-- music: sudden death
-- music: victory
 - feature: helper to find an available sound channel for sfx. Needs to handle being called multiple times a frame.
 - ui: about screen
 - ui: help screen
@@ -25,7 +22,6 @@ TODO:
 - fx: victory screen: a steady rain of the winning team's balloons falling and exploding on losing players
 - fx: spawn droplets in player rect after getting hit with balloon
 - fx: wet footprints after leaving water or getting hit
-- fx: head bob. For ABCB walk cycle, draw head one pixel lower when moving in the middle of the A and C frames. [tried it, it doesn't look right]
   
 DONE:
 * strip invisibrawl arrows/blood code
@@ -80,3 +76,7 @@ X AI [defer to quadplay]
 * shallow water is slowdown / energy drain. (draw players offset a few pixels lower, clip off their legs, add splash particles)
 * sudden death. (everyone gets one last refill, and then all refill stations disappear)
 * About/Help/Credits navigation
+* music: in-game
+* music: sudden death
+X fx: head bob. For ABCB walk cycle, draw head one pixel lower when moving in the middle of the A and C frames. [tried it, it doesn't look right]
+* music: victory
