@@ -256,6 +256,40 @@ tic80pix=pix
 pix=function(x,y,color)
  return tic80pix(x-camera_x,y-camera_y,color)
 end
+-- push/pop clip rectangle
+-- (plus a clip() overload to store it,
+-- since it's not memory-mapped)
+clip_stack={}
+tic80clip=clip
+clip=function(x,y,w,h)
+ clip_stack={}
+ push_clip(x,y,w,h)
+end
+function push_clip(x,y,w,h)
+ x=x or 0
+ y=y or 0
+ w=w or K_SCREEN_W
+ h=h or K_SCREEN_H
+ local current=clip_stack[#clip_stack]
+    or {0,0,K_SCREEN_W,K_SCREEN_H}
+ local cx1,cy1=current[1]+current[3],
+               current[2]+current[4]
+ local x1,y1=x+w,y+h
+ x=max(x, current[1])
+ y=max(y, current[2])
+ x1=min(cx1,x1)
+ y1=min(cy1,y1)
+ w=x1-x
+ h=y1-y
+ add(clip_stack,{x,y,w,h})
+ tic80clip(x,y,w,h)
+end
+function pop_clip()
+ table.remove(clip_stack)
+ local next=clip_stack[#clip_stack] or {}
+ tic80clip(table.unpack(next))
+end
+
 -- tiny vector2 library
 -- adapted from vector.p8 (https://www.lexaloffle.com/bbs/?tid=50410)
 function v2(x,y) return {x=x or 0,y=y or 0} end
