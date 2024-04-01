@@ -1,5 +1,4 @@
 TODO:
-- music: main menu
 - feature: helper to find an available sound channel for sfx. Needs to handle being called multiple times a frame.
 - ui: about screen
 - ui: help screen
@@ -22,6 +21,7 @@ TODO:
 - fx: victory screen: a steady rain of the winning team's balloons falling and exploding on losing players
 - fx: spawn droplets in player rect after getting hit with balloon
 - fx: wet footprints after leaving water or getting hit
+- sound: unique sfx for players on left & right side of the screen
   
 DONE:
 * strip invisibrawl arrows/blood code
@@ -80,3 +80,4 @@ X AI [defer to quadplay]
 * music: sudden death
 X fx: head bob. For ABCB walk cycle, draw head one pixel lower when moving in the middle of the A and C frames. [tried it, it doesn't look right]
 * music: victory
+* music: main menu
