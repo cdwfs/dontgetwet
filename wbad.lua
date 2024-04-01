@@ -149,6 +149,7 @@ SF_BLOCK_PLAYER=0
 SF_BLOCK_BALLOON=1
 SF_BLOCK_RUNNING=2
 SF_BLOCK_SHADOWS=3
+SF_SINK_PLAYER=4
 SF_HAZARD=7
 
 -- make an oop-like object.
@@ -1149,6 +1150,7 @@ function create_player(pid,team)
     self.set_team(self,new_team)
     self.randomize_skin(self)
    end
+   self.sink=0
    self.running=false
    self.speed=0
    self.energy=K_MAX_ENERGY
@@ -1457,6 +1459,23 @@ function cb_update(_ENV)
   else
    p.anims:nextv()
   end
+  -- Update "sink" if standing in
+  -- shallow water
+  local foot=v2(p.pos.x+4,p.pos.y+7)
+  local mtid=mget(foot.x//8,foot.y//8)
+  local fpi=8*(foot.y%8)+(foot.x%8)
+  local fc=peek4(2*(0x4000+32*mtid)+fpi)
+  local new_sink=0
+  if fget(mtid,SF_SINK_PLAYER)
+  and (fc==C_LIGHTBLUE or fc==C_DARKBLUE) then
+   new_sink=2
+  end
+  if new_sink>p.sink then
+   sfx(SFX_BALLOONPOP,5*12+math.random(0,4),
+    -1,K_CHAN_NOISE)
+   -- TODO: splash particles
+  end
+  p.sink=new_sink
   -- Update player's camera focus.
   p.focus.x=approach(p.focus.x,p.pos.x+4,.1)//1
   p.focus.y=approach(p.focus.y,p.pos.y+4,.1)//1
@@ -2083,7 +2102,8 @@ function draw_player(p)
  poke4(2*0x03FF0+PAL_C2,p.color2)
  poke4(2*0x03FF0+PAL_H,p.hairc)
  poke4(2*0x03FF0+PAL_S,p.skinc)
- local ybody,yface=p.pos.y,p.pos.y-8
+ local ybody,yface=p.pos.y+p.sink,
+                   p.pos.y+p.sink-8
  -- head-bob?
  --local ai=p.anims.s[1].i
  --local ac=p.anims.s[1].c
@@ -2092,10 +2112,14 @@ function draw_player(p)
  --and (ac>=4 and ac<=5) then
  -- yface=yface+1
  --end
+ push_clip(p.pos.x-4-camera_x,
+           p.pos.y-8-camera_y,
+           16,16)
  spr(face,p.pos.x-4,yface,
      C_TRANSPARENT, 1,p.hflip,0, 2,1)
  spr(p.anims.v,p.pos.x-4,ybody,
      C_TRANSPARENT, 1,p.hflip,0, 2,1)
+ pop_clip()
  poke4(2*0x03FF0+PAL_C1,prevc1)
  poke4(2*0x03FF0+PAL_C2,prevc2)
  poke4(2*0x03FF0+PAL_H,prevh)
@@ -3305,7 +3329,7 @@ end
 -- </TRACKS>
 
 -- <FLAGS>
--- 000:00003060101000000000000000000000000000001010000000000000000000000808080010100000000000000000000008080800000000000000001010101000000000000000000000000000000000000000000000000000000000404040400000000000000000004040404040404000101010101010101040404040000000401010000000000000004040400000004010101000000000000040400040404040101010101010101000000000000000000000000000101010000000000000000000000000001010100010000000000000b0b0b000000010100000000000000000b000b000000000000000000000000000b0b0b000000000000000000000000000
+-- 000:00003060101000000000000000000000000000001010000000000000000000000808080010100000000000000000000008080800000000000000001010101000000000000000000000000000000000000000000000000000000000414141410000000000000000004141414141414101101010101010101041414141000000411010000000000000004141410000004110101000000000000041410141414141101010101010101000000000000000000000000000101010000000000000000000000000001010100010000000000000b0b0b000000010100000000000000000b000b000000000000000000000000000b0b0b000000000000000000000000000
 -- </FLAGS>
 
 -- <SCREEN>
