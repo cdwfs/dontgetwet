@@ -152,6 +152,7 @@ SID_TOILET=256
 -- sprite flags
 SF_BLOCK_PLAYER=0
 SF_BLOCK_BALLOON=1
+SF_BLOCK_RUNNING=2
 SF_BLOCK_SHADOWS=3
 SF_SINK_PLAYER=4
 SF_HAZARD=7
@@ -1525,6 +1526,7 @@ function cb_update(_ENV)
   local mx,my=p.pos.x//8,p.pos.y//8
   p.running=btn(pb0+4)
    and p.sink==0
+   and not fget(mget(mx,my),SF_BLOCK_RUNNING)
    and p.windup==0
   local max_speed=p.running
     and K_MAX_RUN_SPEED
