@@ -979,7 +979,13 @@ function about_draw(_ENV)
   --throw_player.pos=v2(xthrow0+w+6,ythrow0+8)
   --draw_player(throw_player)
  elseif screen==2 then -- ABOUT
-  dsprint("About the game",2,10,C_WHITE,C_BLACK)
+  local x0,y0=2,10
+  dsprint("It's a beautiful summer day. You and your",x0,y0+1,C_WHITE,C_BLACK)
+  dsprint("friends have the day off from school, but",x0,y0+10,C_WHITE,C_BLACK)
+  dsprint("the adults are all stuck at work. Time to",x0,y0+19,C_WHITE,C_BLACK)
+  dsprint("head down to Dewdrop Gardens for an epic",x0,y0+28,C_WHITE,C_BLACK)
+  dsprint("water-balloon fight!",x0,y0+37,C_WHITE,C_BLACK)
+  dsprint("The last dry kid wins. DON'T GET WET!",x0,y0+55,C_WHITE,C_BLACK)
  elseif screen==3 then -- CREDITS
   dsprint("Code, Music: Cort Stratton",2,10,C_WHITE,C_BLACK,true)
   dsprint("  Pixel Art: Donald Conrad",2,18,C_WHITE,C_BLACK,true)
