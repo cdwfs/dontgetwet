@@ -699,7 +699,7 @@ MENU_DROP_SPAWNS={
  v2(117,19),v2(119,20),v2(121,22),v2(123,23),v2(125,9),v2(127,23),v2(129,21),v2(131,19), -- G
  v2(133,18),v2(135,23),v2(137,23),v2(139,18),v2(141,18),v2(143,17), -- e
  v2(145,13),v2(147,22),v2(149,22),v2(151,12), -- t
- v2(86,31),v2(88,32),v2(90,42),v2(92,42),v2(94,42),v2(96,42),v2(98,38),v2(100,36),v2(102,40),v2(104,42),v2(106,42),v2(108,42),v2(110,39),v2(112,26), -- W
+ v2(86,31),v2(88,32),v2(90,42),v2(92,42),v2(94,42),v2(96,42),v2(98,38),v2(100,36),v2(102,40), -- W
  v2(114,38),v2(116,42),v2(118,43),v2(120,43),v2(122,43),v2(124,43),v2(126,43),v2(128,38),v2(130,36), -- e
  v2(132,33),v2(134,42),v2(136,43),v2(138,43),v2(140,34),v2(142,33),
 }
@@ -758,8 +758,9 @@ function menu_draw(_ENV)
  map(0,0,30,1,0,0)
  -- draw top row of right screen
  map(0,1,14,16,0,8)
- -- draw right-hand fence
+ -- draw right-hand fence and grass
  rect(128,80,128,56,C_DARKGREY)
+ spr(464, 14*8,112, C_DARKGREY, 1,0,0, 16,3)
  -- draw water droplets
  for _,d in ipairs(drops) do
   circ(d.pos.x,d.pos.y,1,C_DARKBLUE)
@@ -769,7 +770,10 @@ function menu_draw(_ENV)
  -- draw right side of screen
  spr(256, 14*8,8, C_TRANSPARENT, 1,0,0, 16,10)
  spr(400, 14*8,80, C_DARKGREY, 1,0,0, 16,4)
- spr(464, 14*8,112, C_DARKGREY, 1,0,0, 16,3)
+ -- draw foreground hand to occlude drops
+ spr(464, 14*8,112, C_TRANSPARENT, 1,0,0, 2,1)
+ spr(480, 14*8,120, C_TRANSPARENT, 1,0,0, 3,1)
+ spr(496, 14*8,128, C_TRANSPARENT, 1,0,0, 3,1)
  -- draw logo
  spr(128, 48,4, C_TRANSPARENT, 1,0,0,
      16,5)

@@ -3,7 +3,6 @@ TODO:
 - ui: about screen
 - ui: help screen
 - ui: credits screen
-- art: add actual title logo to main menu
 - fx: mode transition: dozens of balloons fly at the screen and explode in splashes, which wash away to reveal the new mode
 - fx: victory screen: a steady rain of the winning team's balloons falling and exploding on losing players
 - bug: remove "kill everyone but player one" hack
@@ -86,3 +85,4 @@ X art: new palette for menus, with a darker background instead of something unus
 X sound: unique sfx for players on left & right side of the screen [not enough sound channels. punt panning to quadplay.]
 * fx: spawn droplets in player rect after getting hit with balloon
 * bug: hit from above occasionally doesn't register
+* art: add actual title logo to main menu
