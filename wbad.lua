@@ -814,17 +814,20 @@ function about_enter(args)
   screens={"Help","About","Credits"},
   screen=1,
   scroll=0,
-  scroll_max={60,0,0}, -- per screen
+  scroll_max={90,0,0}, -- per screen
   move_player=create_player(1,1),
   run_player=create_player(2,2),
   throw_player=create_player(3,3),
   refill=create_refill(8,8),
+  move_bounds={110,180}
  })
  local ab=mode_about
- ab.move_player.pos=v2(20,20)
- ab.move_player.anims:to("idlelr")
- ab.run_player.pos=v2(30,40)
- ab.run_player.anims:to("idlelr")
+ ab.move_player.pos=v2(ab.move_bounds[1],20)
+ ab.move_player.dir=v2(1,0)
+ ab.move_player.anims:to("walklr")
+ ab.run_player.pos=v2(ab.move_bounds[1],40)
+ ab.run_player.dir=v2(1,0)
+ ab.run_player.anims:to("walklr")
  ab.throw_player.pos=v2(50,50)
  ab.throw_player.anims:to("idlelr")
  return mode_about
@@ -866,6 +869,46 @@ function about_update(_ENV)
   end
  end
  -- Update animations on help screen
+ -- demo moving player
+ move_player.pos.x=
+  move_player.pos.x+
+  move_player.dir.x*K_MAX_WALK_SPEED
+ if move_player.dir.x<0
+ and move_player.pos.x<move_bounds[1] then
+  move_player.hflip=0
+  move_player.dir.x=1
+ elseif move_player.dir.x>0
+ and move_player.pos.x>move_bounds[2] then
+  move_player.hflip=1
+  move_player.dir.x=-1
+ end
+ move_player.anims:nextv()
+ -- demo running player
+ if mode_frames%60==0 then
+  run_player.running=not run_player.running
+ end
+ run_player.pos.x=
+  run_player.pos.x+
+  run_player.dir.x*
+   (run_player.running
+    and K_MAX_RUN_SPEED
+     or K_MAX_WALK_SPEED)
+ if run_player.dir.x<0
+ and run_player.pos.x<move_bounds[1] then
+  run_player.hflip=0
+  run_player.dir.x=1
+ elseif run_player.dir.x>0
+ and run_player.pos.x>move_bounds[2] then
+  run_player.hflip=1
+  run_player.dir.x=-1
+ end
+ run_player.anims:nextv()
+ -- TODO: demo throwing
+
+ -- demo refill station
+ for _,s in ipairs(refill.sparkles) do
+  s:update()
+ end
 end
 
 function about_draw(_ENV)
@@ -891,39 +934,50 @@ function about_draw(_ENV)
  if screen==1 then -- HELP
   -- explain UI
   local xui0,yui0=2,10
-  dsprint("This bar shows your energy:",xui0,yui0+1,C_WHITE,C_BLACK)
-  draw_energy_ui(xui0+150,yui0+2,32,5,K_MAX_ENERGY*0.75)
+  local w=dsprint("This bar shows your energy:",xui0,yui0+1,C_WHITE,C_BLACK)
+  draw_energy_ui(xui0+w+2,yui0+2,32,5,K_MAX_ENERGY*0.75)
   dsprint("Walking, running, and getting hit",xui0,yui0+10,C_WHITE,C_BLACK)
   dsprint("by balloons consumes energy.",xui0,yui0+19,C_WHITE,C_BLACK)
   dsprint("If it runs out, you're eliminated!",xui0,yui0+28,C_WHITE,C_BLACK)
   dsprint("These dots show how many water",xui0,yui0+46,C_WHITE,C_BLACK)
-  dsprint("balloons you have:",xui0,yui0+55,C_WHITE,C_BLACK)
-  draw_ammo_ui(xui0+103,yui0+58,K_MAX_AMMO,TEAM_COLORS[1])
+  local w=dsprint("balloons you have:",xui0,yui0+55,C_WHITE,C_BLACK)
+  draw_ammo_ui(xui0+w+2,yui0+58,K_MAX_AMMO,TEAM_COLORS[1])
+  -- explain refill stations
+  local xref0,yref0=2,yui0+73
+  dsprint("Touching a bowl of balloons restores",xref0,yref0+1,C_WHITE,C_BLACK)
+  dsprint("both energy and water balloons.",xref0,yref0+10,C_WHITE,C_BLACK)
+  local w=dsprint("The bowl takes some time to refill",xref0,yref0+19,C_WHITE,C_BLACK)
+  refill.pos=v2(xref0+w+4,yref0+17)
+  draw_refill(refill)
+  dsprint("after use.",xref0,yref0+28,C_WHITE,C_BLACK)
   -- How to move
-  local xmove0,ymove0=2,yui0+73
+  local xmove0,ymove0=2,yref0+46
   dsprint("Use           to move.",xmove0,ymove0+1,C_WHITE,C_BLACK)
+  local lpress=move_player.dir.x<0 and 16 or 0
+  local rpress=move_player.dir.x>0 and 16 or 0
   spr(btnspr(0),xmove0+20,ymove0,C_TRANSPARENT)
   spr(btnspr(1),xmove0+30,ymove0,C_TRANSPARENT)
-  spr(btnspr(2),xmove0+40,ymove0,C_TRANSPARENT)
-  spr(btnspr(3),xmove0+50,ymove0,C_TRANSPARENT)
-  move_player.pos=v2(xmove0+10,ymove0+17)
+  spr(btnspr(2)+lpress,xmove0+40,ymove0,C_TRANSPARENT)
+  spr(btnspr(3)+rpress,xmove0+50,ymove0,C_TRANSPARENT)
+  move_player.pos.y=ymove0
   draw_player(move_player)
   -- How to run
-  local xrun0,yrun0=2,ymove0+26
-  dsprint("Hold   to run. Note:",xrun0,yrun0+1,C_WHITE,C_BLACK)
-  spr(btnspr(4),xrun0+25,yrun0,C_TRANSPARENT)
+  local xrun0,yrun0=2,ymove0+17
+  dsprint("Hold   to run.",xrun0,yrun0+1,C_WHITE,C_BLACK)
+  local press4=run_player.running and 16 or 0
+  spr(btnspr(4)+press4,xrun0+25,yrun0,C_TRANSPARENT)
   dsprint("* Running consumes energy faster!",xrun0,yrun0+10,C_WHITE,C_BLACK)
   dsprint("* Not all terrain allows running!",xrun0,yrun0+19,C_WHITE,C_BLACK)
   dsprint("* You can't run while aiming a balloon!",xrun0,yrun0+28,C_WHITE,C_BLACK)
-  run_player.pos=v2(xrun0+10,yrun0+45)
+  run_player.pos.y=yrun0
   draw_player(run_player)
   -- How to throw
-  local xthrow0,ythrow0=2,yrun0+56
-  dsprint("Hold   to aim a balloon, and",xthrow0,ythrow0+1,C_WHITE,C_BLACK)
+  local xthrow0,ythrow0=2,yrun0+46
+  local w=dsprint("Hold   to aim a balloon, and",xthrow0,ythrow0+1,C_WHITE,C_BLACK)
   dsprint("release to throw.",xthrow0,ythrow0+10,C_WHITE,C_BLACK)
   spr(btnspr(5),xthrow0+25,ythrow0,C_TRANSPARENT)
-  throw_player.pos=v2(xthrow0+10,ythrow0+27)
-  draw_player(throw_player)
+  --throw_player.pos=v2(xthrow0+w+6,ythrow0+8)
+  --draw_player(throw_player)
  elseif screen==2 then -- ABOUT
   dsprint("About the game",2,10,C_WHITE,C_BLACK)
  elseif screen==3 then -- CREDITS
@@ -1987,9 +2041,9 @@ function create_refill(mx,my)
   local s=obj({
    ttl=0,
    reset=function(self)
-    self.pos=v2(r.pos.x+1+flr(rnd(7)),
-                r.pos.y+1)
-    self.ttl=flr(rnd(25,35))
+    self.pos=v2(r.pos.x+flr(rnd(9)),
+                r.pos.y+3)
+    self.ttl=flr(rnd(35,45))
    end,
    update=function(self)
     if self.ttl==0 then
@@ -2115,16 +2169,7 @@ function cb_draw(_ENV)
     add(draws,{
      order=r.pos.y, order2=r.pos.x,
      f=function(r)
-      for _,s in ipairs(r.sparkles) do
-       s:draw()
-      end
-      spr(SID_REFILL, r.pos.x-4, r.pos.y,
-       C_TRANSPARENT, 1,0,0, 2,1)
-      if r.cooldown>0 then
-       local h=8*r.cooldown/K_REFILL_COOLDOWN
-       rect(r.pos.x-1,r.pos.y+8-h,
-        10,h,C_RED)
-      end
+      draw_refill(r)
      end, args={r}
     })
    end
@@ -2261,6 +2306,18 @@ function draw_ammo_ui(x,y,count,color)
  for ib=0,count-1 do
   circ(x+1+ib*6,y,2,color)
   circb(x+1+ib*6,y,2,C_BLACK)
+ end
+end
+
+function draw_refill(r)
+ for _,s in ipairs(r.sparkles) do
+  s:draw()
+ end
+ spr(SID_REFILL, r.pos.x-4, r.pos.y,
+  C_TRANSPARENT, 1,0,0, 2,1)
+ if r.cooldown>0 then
+  local h=8*r.cooldown/K_REFILL_COOLDOWN
+  rect(r.pos.x-1,r.pos.y+8-h,10,h,C_RED)
  end
 end
 
