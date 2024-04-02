@@ -1,5 +1,4 @@
 TODO:
-- bug: hit from above occasionally doesn't register
 - fx: spawn splash particles when characters enter or move in water
 - ui: about screen
 - ui: help screen
@@ -86,3 +85,4 @@ X bug: guess what the background a spawned object should be replaced with. [too 
 X art: new palette for menus, with a darker background instead of something unused. [can't easily switch palette to 2 and everything else to 1.]
 X sound: unique sfx for players on left & right side of the screen [not enough sound channels. punt panning to quadplay.]
 * fx: spawn droplets in player rect after getting hit with balloon
+* bug: hit from above occasionally doesn't register

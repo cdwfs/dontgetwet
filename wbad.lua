@@ -1280,7 +1280,7 @@ function cb_update(_ENV)
   for _,p in ipairs(players) do
    if b.pid~=p.pid
    and b.pos.x>=p.pos.x-b.r
-   and b.pos.y>=p.pos.y-8-b.r
+   and b.pos.y>=p.pos.y-b.r
    and b.pos.x<=p.pos.x+7+b.r
    and b.pos.y<=p.pos.y+7+b.r then
     pop=true
