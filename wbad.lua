@@ -84,7 +84,9 @@ C_RED=5
 C_TRANSPARENT=5 -- by default
 C_LIGHTGREY=7
 C_WHITE=8
+C_BROWN=9
 C_DARKGREEN=11
+C_ORANGE=12
 C_LIGHTBLUE=13
 C_TAN=14
 C_YELLOW=15
@@ -1354,26 +1356,22 @@ function create_player(pid,team)
    self.anims:to("idlelr")
   end,
   randomize_skin=function(self)
-   self.facelr=464
-   self.faced=480
-   self.faceu=496
-   self.skinc=14
-   self.hairc=12
    -- randomize face
-   local iface=2*math.random(0,5)
-   self.facelr=self.facelr+iface
-   self.faced=self.faced+iface
-   self.faceu=self.faceu+iface
+   local ALL_FACES={464,466,468,470,472,474}
+   self.facelr=rndt(ALL_FACES)
+   self.faced=self.facelr+16
+   self.faceu=self.facelr+32
    -- randomize skin/hair
-   local skinhairs={
-    {14,12}, -- fair/orange
-    {14,9},  -- fair/brown
-    {14,3},  -- fair/black
-    {14,15}, -- fair/blonde
-    {9,3},   -- dark/black
+   local ALL_SKINHAIRS={
+    {C_TAN,C_ORANGE},
+    {C_TAN,C_BROWN},
+    {C_TAN,C_BLACK},
+    {C_TAN,C_YELLOW},
+    {C_YELLOW,C_DARKGREY},
+    {C_BROWN,C_DARKGREY},
    }
    self.skinc,self.hairc=
-    table.unpack(rndt(skinhairs))
+    table.unpack(rndt(ALL_SKINHAIRS))
   end,
  })
  p.reset(p,pid,team)
