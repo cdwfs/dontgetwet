@@ -815,7 +815,18 @@ function about_enter(args)
   screen=1,
   scroll=0,
   scroll_max={60,0,0}, -- per screen
+  move_player=create_player(1,1),
+  run_player=create_player(2,2),
+  throw_player=create_player(3,3),
+  refill=create_refill(8,8),
  })
+ local ab=mode_about
+ ab.move_player.pos=v2(20,20)
+ ab.move_player.anims:to("idlelr")
+ ab.run_player.pos=v2(30,40)
+ ab.run_player.anims:to("idlelr")
+ ab.throw_player.pos=v2(50,50)
+ ab.throw_player.anims:to("idlelr")
  return mode_about
 end
 
@@ -854,6 +865,7 @@ function about_update(_ENV)
     30)
   end
  end
+ -- Update animations on help screen
 end
 
 function about_draw(_ENV)
@@ -876,16 +888,45 @@ function about_draw(_ENV)
  rect(0,9,K_SCREEN_W-1,K_SCREEN_H-19,4)
  clip(0,9,K_SCREEN_W,K_SCREEN_H-19)
  camera(0,scroll)
- if screen==1 then
-  -- instructions
-  for i=1,30 do
-   dsprint("Lots of really long text "..i,2,2+8*i,C_WHITE,C_BLACK)
-  end
- elseif screen==2 then
-  -- about
+ if screen==1 then -- HELP
+  -- explain UI
+  local xui0,yui0=2,10
+  dsprint("This bar shows your energy:",xui0,yui0+1,C_WHITE,C_BLACK)
+  draw_energy_ui(xui0+150,yui0+2,32,5,K_MAX_ENERGY*0.75)
+  dsprint("Walking, running, and getting hit",xui0,yui0+10,C_WHITE,C_BLACK)
+  dsprint("by balloons consumes energy.",xui0,yui0+19,C_WHITE,C_BLACK)
+  dsprint("If it runs out, you're eliminated!",xui0,yui0+28,C_WHITE,C_BLACK)
+  dsprint("These dots show how many water",xui0,yui0+46,C_WHITE,C_BLACK)
+  dsprint("balloons you have:",xui0,yui0+55,C_WHITE,C_BLACK)
+  draw_ammo_ui(xui0+103,yui0+58,K_MAX_AMMO,TEAM_COLORS[1])
+  -- How to move
+  local xmove0,ymove0=2,yui0+73
+  dsprint("Use           to move.",xmove0,ymove0+1,C_WHITE,C_BLACK)
+  spr(btnspr(0),xmove0+20,ymove0,C_TRANSPARENT)
+  spr(btnspr(1),xmove0+30,ymove0,C_TRANSPARENT)
+  spr(btnspr(2),xmove0+40,ymove0,C_TRANSPARENT)
+  spr(btnspr(3),xmove0+50,ymove0,C_TRANSPARENT)
+  move_player.pos=v2(xmove0+10,ymove0+17)
+  draw_player(move_player)
+  -- How to run
+  local xrun0,yrun0=2,ymove0+26
+  dsprint("Hold   to run. Note:",xrun0,yrun0+1,C_WHITE,C_BLACK)
+  spr(btnspr(4),xrun0+25,yrun0,C_TRANSPARENT)
+  dsprint("* Running consumes energy faster!",xrun0,yrun0+10,C_WHITE,C_BLACK)
+  dsprint("* Not all terrain allows running!",xrun0,yrun0+19,C_WHITE,C_BLACK)
+  dsprint("* You can't run while aiming a balloon!",xrun0,yrun0+28,C_WHITE,C_BLACK)
+  run_player.pos=v2(xrun0+10,yrun0+45)
+  draw_player(run_player)
+  -- How to throw
+  local xthrow0,ythrow0=2,yrun0+56
+  dsprint("Hold   to aim a balloon, and",xthrow0,ythrow0+1,C_WHITE,C_BLACK)
+  dsprint("release to throw.",xthrow0,ythrow0+10,C_WHITE,C_BLACK)
+  spr(btnspr(5),xthrow0+25,ythrow0,C_TRANSPARENT)
+  throw_player.pos=v2(xthrow0+10,ythrow0+27)
+  draw_player(throw_player)
+ elseif screen==2 then -- ABOUT
   dsprint("About the game",2,10,C_WHITE,C_BLACK)
- elseif screen==3 then
-  -- credits
+ elseif screen==3 then -- CREDITS
   dsprint("Code, Music: Cort Stratton",2,10,C_WHITE,C_BLACK,true)
   dsprint("  Pixel Art: Donald Conrad",2,18,C_WHITE,C_BLACK,true)
   dsprint(" QA, Antics: Peter M.J. Gross",2,26,C_WHITE,C_BLACK,true)
@@ -2120,14 +2161,8 @@ function cb_draw(_ENV)
   -- restore screen-space camera
   camera(0,0)
   -- draw player energy and ammo bars
-  rectb(pclip[1]+2,pclip[2]+2,
-        32,4,K_WHITE)
-  rect( pclip[1]+3,pclip[2]+3,
-        30*p.energy/K_MAX_ENERGY,2,C_RED)
-  for ib=1,p.ammo do
-   circ(pclip[1]+34+ib*6,pclip[2]+4,2,p.color)
-   circb(pclip[1]+34+ib*6,pclip[2]+4,2,C_BLACK)
-  end
+  draw_energy_ui(pclip[1]+2,pclip[2]+2,32,5,p.energy)
+  draw_ammo_ui(pclip[1]+40,pclip[2]+4,p.ammo,p.color)
   -- for low-energy/ammo players, draw "refill" prompt
   if (p.energy<K_ENERGY_WARNING or p.ammo==0)
   and not p.eliminated
@@ -2214,6 +2249,19 @@ function draw_balloon(x,y,r,color,t,t1)
              r+cos(1.5+.04*t)/2
  elli(x,y-yoff,rx+1,ry+1,C_BLACK)
  elli(x,y-yoff,rx,ry,color)
+end
+
+function draw_energy_ui(x,y,w,h,energy)
+ rectb(x,y,w,h,K_WHITE)
+ rect(x+1,y+1,(w-2)*energy/K_MAX_ENERGY,
+  h-2,C_RED)
+end
+
+function draw_ammo_ui(x,y,count,color)
+ for ib=0,count-1 do
+  circ(x+ib*6,y,2,color)
+  circb(x+ib*6,y,2,C_BLACK)
+ end
 end
 
 function draw_player(p)
