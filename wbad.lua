@@ -2162,7 +2162,7 @@ function cb_draw(_ENV)
   camera(0,0)
   -- draw player energy and ammo bars
   draw_energy_ui(pclip[1]+2,pclip[2]+2,32,5,p.energy)
-  draw_ammo_ui(pclip[1]+40,pclip[2]+4,p.ammo,p.color)
+  draw_ammo_ui(pclip[1]+39,pclip[2]+4,p.ammo,p.color)
   -- for low-energy/ammo players, draw "refill" prompt
   if (p.energy<K_ENERGY_WARNING or p.ammo==0)
   and not p.eliminated
@@ -2259,8 +2259,8 @@ end
 
 function draw_ammo_ui(x,y,count,color)
  for ib=0,count-1 do
-  circ(x+ib*6,y,2,color)
-  circb(x+ib*6,y,2,C_BLACK)
+  circ(x+1+ib*6,y,2,color)
+  circb(x+1+ib*6,y,2,C_BLACK)
  end
 end
 
