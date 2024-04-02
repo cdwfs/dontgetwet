@@ -2149,10 +2149,9 @@ function draw_player(p)
  end
  if p.eliminated then
   -- swap to "soaked" palette
+  poke4(2*0x03FF0,C_DARKBLUE)
   for i=1,15 do
-   poke4(2*0x03FF0+i,
-    p.sink<10 and C_LIGHTBLUE
-                or C_DARKBLUE)
+   poke4(2*0x03FF0+i,C_LIGHTBLUE)
   end
  else
   -- palette-swap player-specific colors
