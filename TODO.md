@@ -1,13 +1,10 @@
 TODO:
 - fx: spawn splash particles when characters enter or move in water
-- ui: about screen
-- ui: help screen
 - ui: credits screen
 - fx: mode transition: dozens of balloons fly at the screen and explode in splashes, which wash away to reveal the new mode
 - fx: victory screen: a steady rain of the winning team's balloons falling and exploding on losing players
 - bug: remove "kill everyone but player one" hack
 - feature: enable hidden characters. Check for button combo at player creation time?
-- art: sand tiles? (slow running)
 - art: Basketball hoop sprites
 - art: winning player animation
 - art: losing player animation
@@ -80,9 +77,12 @@ X feature: helper to find an available sound channel for sfx. Needs to handle be
 * fx: sparkles on refill stations to make them stand out more
 * fx: Eliminated players turn blue and sink into the ground, leaving a dark blue puddle
 X fx: wet footprints after leaving water or getting hit [doesn't look right, needs proper lighting/alpha, punt to quadplay]
-X bug: guess what the background a spawned object should be replaced with. [too much effort for too little benefit.]
 X art: new palette for menus, with a darker background instead of something unused. [can't easily switch palette to 2 and everything else to 1.]
 X sound: unique sfx for players on left & right side of the screen [not enough sound channels. punt panning to quadplay.]
 * fx: spawn droplets in player rect after getting hit with balloon
 * bug: hit from above occasionally doesn't register
 * art: add actual title logo to main menu
+* ui: about screen
+* ui: help screen
+* art: sand tiles? (slow running)
+* bug: guess what the background a spawned object should be replaced with.

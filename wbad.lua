@@ -122,6 +122,10 @@ TID_SAND0=68
 TID_SAND_POOL={37,38,53,54,69,70}
 TID_GRASS_NOMOVE=2
 TID_GRASS_NOBALLOON=3
+TID_GRAVEL_NOMOVE=4
+TID_GRAVEL_NOBALLOON=5
+TID_SAND_NOMOVE=6
+TID_SAND_NOBALLOON=7
 TID_SPAWN_TREE=112
 TID_SPAWN_MBARS=113
 TID_SPAWN_SWING=114
@@ -154,7 +158,9 @@ SF_BLOCK_PLAYER=0
 SF_BLOCK_BALLOON=1
 SF_BLOCK_RUNNING=2
 SF_BLOCK_SHADOWS=3
-SF_SINK_PLAYER=4
+SF_SHALLOW_WATER=4
+SF_SAND=5
+SF_GRAVEL=6 -- HACK, only used for spawn-tile replacement heuristic
 SF_HAZARD=7
 
 -- make an oop-like object.
@@ -1260,6 +1266,21 @@ function cb_enter(args)
  return cb
 end
 
+function guess_replace_tile(mx,my,block_moves)
+ -- HACK: use the tile directly
+ -- below the spawner to determine
+ -- what tile type to replace the
+ -- spawner with.
+ local mtid=mget(mx,my+1)
+ if fget(mtid,SF_GRAVEL) then
+  return block_moves and TID_GRAVEL_NOMOVE or TID_GRAVEL_NOBALLOON
+ elseif mtid==TID_SAND0
+ or fget(mtid,SF_SAND) then
+  return block_moves and TID_SAND_NOMOVE or TID_SAND_NOBALLOON
+ end
+ return block_moves and TID_GRASS_NOMOVE or TID_GRASS_NOBALLOON
+end
+
 function create_player(pid,team)
  local p=obj({
   --[[
@@ -1629,10 +1650,12 @@ function cb_update(_ENV)
   local fpi=8*(foot.y%8)+(foot.x%8)
   local fc=peek4(2*(0x4000+32*mtid)+fpi)
   local new_sink=0
-  if fget(mtid,SF_SINK_PLAYER) then
+  if fget(mtid,SF_SHALLOW_WATER) then
    if fc==C_LIGHTBLUE or fc==C_DARKBLUE then
     new_sink=2
-   elseif fc==C_YELLOW or C_WHITE or C_TAN then
+   end
+  elseif fget(mtid,SF_SAND) then
+   if fc==C_YELLOW or C_WHITE or C_TAN then
     new_sink=1
    end
   end
@@ -1780,7 +1803,7 @@ function create_tree(mx,my)
  -- next to trees still puts your head
  -- in the leaves
  t.order,t.order2=t.pos.y+1,t.pos.x
- mset(mx,my,TID_GRASS_NOMOVE)
+ mset(mx,my,guess_replace_tile(mx,my,true))
  return t
 end
 
@@ -1806,7 +1829,7 @@ function create_seesaw(mx,my)
  })
  s.order,s.order2=s.pos.y,s.pos.x
  for x=mx,mx+4 do
-  mset(x,my,TID_GRASS_NOMOVE)
+  mset(x,my,guess_replace_tile(mx,my,true))
  end
  return s
 end
@@ -1832,7 +1855,7 @@ function create_toilet(mx,my)
  })
  t.order,t.order2=t.pos.y,t.pos.x
  for x=mx,mx+1 do
-  mset(x,my,TID_GRASS_NOMOVE)
+  mset(x,my,guess_replace_tile(mx,my,true))
  end
  return t
 end
@@ -1862,9 +1885,11 @@ function create_mbars(mx,my)
  })
  m.order,m.order2=m.pos.y,m.pos.x
  -- middle tile of monkey bars is passable
- mset(mx+0,my,TID_GRASS_NOMOVE)
+ -- TODO: skip the middle tile when drawing spawn tiles
+ -- so we don't have to replace it
+ mset(mx+0,my,guess_replace_tile(mx,my,true))
  mset(mx+1,my,rndt(TID_GRASS_POOL))
- mset(mx+2,my,TID_GRASS_NOMOVE)
+ mset(mx+2,my,guess_replace_tile(mx,my,true))
  return m
 end
 
@@ -1892,7 +1917,7 @@ function create_swing(mx,my)
  })
  s.order,s.order2=s.pos.y,s.pos.x
  for x=mx,mx+3 do
-  mset(x,my,TID_GRASS_NOMOVE)
+  mset(x,my,guess_replace_tile(mx,my,true))
  end
  return s
 end
@@ -1911,7 +1936,7 @@ function create_elephant(mx,my)
   end,
  })
  e.order,e.order2=e.pos.y,e.pos.x
- mset(mx,my,TID_GRASS_NOMOVE)
+ mset(mx,my,guess_replace_tile(mx,my,true))
  return e
 end
 
@@ -1932,7 +1957,7 @@ function create_bush(mx,my)
  })
  b.order,b.order2=b.pos.y,b.pos.x
  -- bushes block balloons
- mset(mx,my,TID_GRASS_NOBALLOON)
+ mset(mx,my,guess_replace_tile(mx,my,false))
  return b
 end
 
@@ -1999,7 +2024,7 @@ function create_sign(mx,my)
  })
  s.order,s.order2=s.pos.y,s.pos.x
  for x=mx,mx+sw-1 do
-  mset(x,my,TID_GRASS_NOMOVE)
+  mset(x,my,guess_replace_tile(mx,my,true))
  end
  return s
 end
@@ -2040,7 +2065,7 @@ function create_rock(mx,my)
  })
  r.order,r.order2=r.pos.y,r.pos.x
  for x=mx,mx+mw-1 do
-  mset(x,my,TID_GRASS_NOMOVE)
+  mset(x,my,guess_replace_tile(mx,my,true))
  end
  return r
 end
@@ -2562,6 +2587,10 @@ end
 -- 000:3333333333333333333333333333333333333333333333333333333333333333
 -- 002:9bbbbbb1bbbbbbb1bbbbbbbbbbbbbbfbb1bb1b1bb1bb1bbbb1bbb37bbbbbbbbb
 -- 003:bbb9bbbbbbbbbbbbbbbbbbb1bbbbbb1bb1bbbb1b1bbfbbbb1bbabb9b17bbbbbb
+-- 004:777977777b77777777777777777771777777777777777779177777777777b777
+-- 005:777b77777777777197777777777777777717777777777777777777b777779777
+-- 006:eeeeeeeeeeefeeeeeeeee8eeeeeeeeeeeeeeeeeeee8eeeeeeeeeeeeeeeeeeeee
+-- 007:eeeeeeeeeefee8eeeeeeeeeeeeeeeeeeeeeeeeeee8eee8eeeeefeeeeeeeeeeee
 -- 010:aaaaaaaaaaaaaa55aaaa5558aaa55888aa555584aa58855da5588455a5884d85
 -- 011:aaaaaaaa55aaaaaa8555aaaa48855aaa488855aa488885aad488855a5d48885a
 -- 012:aaaaaaaaaaaaaaa8aaaaaaa8aaaaaaaaaaa33333aaa37377aaa37377aaa37377
@@ -2628,10 +2657,10 @@ end
 -- 101:33333333333333333333333333333333333333333333333333333333ffffffff
 -- 102:33333333333333333333333333333333333333333333333333333333ffffffff
 -- 104:9bbb5bbbd99b1b99dd99999dddddddddddddddddddddd1dddddd91999999bbbb
--- 105:99999991ddddddd9ddddddddddddddddddd9dddddd9119ddd951bb199bbbbb1b
+-- 105:99999991ddddddd9ddddddddddddddddddd9dddddd9119ddd9f1bb199bbbbb1b
 -- 106:b99999919ddddd99ddddddd9ddddddd9dddddd12dddddd919ddddd9bb9ddddd9
 -- 107:bbbbb1b1b6b17bb11bb11bb9bbbbb99d1bbb9dddbbb9ddddbbb9dd4dbb9ddddd
--- 108:b1b99bbbbb9dd9b699dddd91ddddddd9dddddddddddddddddd4ddddddddd44d4
+-- 108:b1b99bbbbb9dd9bf99dddd91ddddddd9dddddddddddddddddd4ddddddddd44d4
 -- 109:bbbbbbbbbbbbbbbbb99bb9999dd99ddddddddd4ddddddddd4ddddddddd444d44
 -- 110:bbb137b15bbbbbbb99999bbbddddd999d4dddddddddddd4ddddddddd44dd444d
 -- 111:1bbbbbbb1bbbb11bbbb1bbbbbb77bb2b9bbbbbb1d9bbbbb1dd9b1bbbddd9bbbb
@@ -2661,7 +2690,7 @@ end
 -- 151:717777977737177e737e77ee77eeeeee717eee8e377feeee77eeeeee77eeeeee
 -- 153:b9dddd9b9dddddd99ddddddd9ddddddd9ddddddd9ddddddd99dd699d1999b1b9
 -- 154:b9dddd9b9dddddd9ddddddd9ddddddd9ddddddd9ddddddd9d991dd999b1b9991
--- 155:1bbb9ddd1b1bb999bb1bb1bbbbbbbbbbbbbbbb2b1bcb11bb1b1bbbbb1bbbbbbb
+-- 155:1bbb9ddd1b1bb999bb1bb1bbbbbbbbbbbbbbbbfb1bcb11bb1b1bbbbb1bbbbbbb
 -- 156:d444dd44dddddddd99ddd4dd1b99ddddbbb19191bcb131b1b1bb7bb1b1bbbbbb
 -- 157:4dddd444dddddddddd4dddddddddd99d99dd9bb9bb999bbbbbbbbbbbbbbbbbbb
 -- 158:44dddd4dddd4ddddddddddddd9999ddd9b5bb9ddb11bbb99bbbb1bbbb7bb1bbb
@@ -3634,7 +3663,7 @@ end
 -- </TRACKS>
 
 -- <FLAGS>
--- 000:00003060101000000000000000000000000000001010000000000000000000000808080010010100000000000000000008080800000101010000001010101000000000000001010100000000000000000000000000000000000000010101010000000000000000000101010101010101101010101010101001010101000000011010000000000000000101010000000110101000000001010001010101010101101010101010010100000000000000000000000000101010000000000000000000000000001010100010000000000000b0b0b000000010100000000000000000b000b000000000000000000000000000b0b0b000000000000000000000000000
+-- 000:00003060306032620000000000000000000000000010000000000000000000000808080010020200000000000000000008080800000202020000001010101000000000000002020200000000000000000000000000000000000000010101010000000000000000000101010101010101101010101010101001010101000000011010000000000000000101010000000110101000000002060001010101010101101010101010060200000000000000000000000000101414000000000004000000000000001010100010000000040000b0b0b000000010100000000000000000b000b000000000000000000000000000b0b0b000000000000000000000000000
 -- </FLAGS>
 
 -- <SCREEN>
