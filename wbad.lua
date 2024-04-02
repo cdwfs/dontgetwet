@@ -61,6 +61,8 @@ K_MAX_WINDUP_SPEED=0.4
 K_MAX_AMMO=5
 K_MAX_PING_RADIUS=600
 K_REFILL_COOLDOWN=60*10
+K_HIT_COOLDOWN=120
+K_GRAVITY=0.04
 K_MAX_WINDUP=60
 K_MIN_THROW=20
 K_MAX_THROW=70
@@ -1148,6 +1150,8 @@ function create_player(pid,team)
     self.randomize_skin(self)
    end
    self.sink=0
+   self.hit_cooldown=0
+   self.hit_drops={}
    self.running=false
    self.speed=0
    self.energy=K_MAX_ENERGY
@@ -1297,6 +1301,7 @@ function cb_update(_ENV)
      local dmg=lerp(K_ENERGY_HIT,
                     K_ENERGY_SPLASH,
                     dst2/max_dst2)
+     p.hit_cooldown=K_HIT_COOLDOWN
      p.energy=max(0,p.energy-dmg)
      -- don't play "hit" sound on the
      -- same frame as "eliminated"
@@ -1471,6 +1476,25 @@ function cb_update(_ENV)
    -- TODO: splash particles
   end
   p.sink=new_sink
+  -- update hit cooldown and droplets
+  if p.hit_cooldown>0 then
+   p.hit_cooldown=p.hit_cooldown-1
+   if (p.hit_cooldown%10)==0 then
+    add(p.hit_drops,{
+     pos=v2(flr(math.random(0,8)),0),
+     vel=v2(0,0),
+    })
+   end
+  end
+  local hit_drops2={}
+  for _,d in ipairs(p.hit_drops) do
+   d.vel=v2add(d.vel,v2(0,K_GRAVITY))
+   d.pos=v2add(d.pos,d.vel)
+   if d.pos.y<16 then
+    add(hit_drops2,d)
+   end
+  end
+  p.hit_drops=hit_drops2
   -- Update player's camera focus.
   p.focus.x=approach(p.focus.x,p.pos.x+4,.1)//1
   p.focus.y=approach(p.focus.y,p.pos.y+4,.1)//1
@@ -2142,6 +2166,9 @@ function draw_player(p)
  if p.dir.y<0 then face=p.faceu
  elseif p.dir.y>0 then face=p.faced
  end
+ local ybody,yface=p.pos.y+p.sink,
+                   p.pos.y+p.sink-8
+ -- draw actual player
  local PAL_C1=6
  local PAL_C2=2
  local PAL_H=12
@@ -2159,8 +2186,6 @@ function draw_player(p)
   poke4(2*0x03FF0+PAL_H,p.hairc)
   poke4(2*0x03FF0+PAL_S,p.skinc)
  end
- local ybody,yface=p.pos.y+p.sink,
-                   p.pos.y+p.sink-8
  push_clip(p.pos.x-4-camera_x,
            p.pos.y-8-camera_y,
            16,16)
@@ -2168,10 +2193,40 @@ function draw_player(p)
      C_TRANSPARENT, 1,p.hflip,0, 2,1)
  spr(p.anims.v,p.pos.x-4,ybody,
      C_TRANSPARENT, 1,p.hflip,0, 2,1)
- pop_clip()
  for i=0,7 do
   poke(0x03FF0+i,_g.palbytes[i])
  end
+ -- recently-hit players have extra
+ -- effects during the hit cooldown
+ -- period
+ if not p.eliminated
+ and p.hit_cooldown>0 then
+  push_clip(p.pos.x-4-camera_x,
+            p.pos.y-8+(K_HIT_COOLDOWN-p.hit_cooldown)//3-camera_y,
+            16,16)
+  -- swap to "soaked" palette
+  poke4(2*0x03FF0,C_DARKBLUE)
+  for i=1,15 do
+   poke4(2*0x03FF0+i,C_LIGHTBLUE)
+  end
+  spr(face,p.pos.x-4,yface,
+      C_TRANSPARENT, 1,p.hflip,0, 2,1)
+  spr(p.anims.v,p.pos.x-4,ybody,
+      C_TRANSPARENT, 1,p.hflip,0, 2,1)
+  for i=0,7 do
+   poke(0x03FF0+i,_g.palbytes[i])
+  end
+  pop_clip()
+  for _,d in ipairs(p.hit_drops) do
+   pix(p.pos.x-2+d.pos.x,
+       p.pos.y-7+d.pos.y,
+       C_LIGHTBLUE)
+   pix(p.pos.x-2+d.pos.x,
+       p.pos.y-7+d.pos.y+1,
+       C_DARKBLUE)
+  end
+ end
+ pop_clip()
  -- draw balloon and reticle
  -- if winding up
  if p.windup>0 then
