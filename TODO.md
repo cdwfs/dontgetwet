@@ -1,10 +1,10 @@
 TODO:
+- feature: enable hidden characters. Check for button combo at player creation time?
 - fx: spawn splash particles when characters enter or move in water
 - ui: credits screen
 - fx: mode transition: dozens of balloons fly at the screen and explode in splashes, which wash away to reveal the new mode
 - fx: victory screen: a steady rain of the winning team's balloons falling and exploding on losing players
 - bug: remove "kill everyone but player one" hack
-- feature: enable hidden characters. Check for button combo at player creation time?
 - art: Basketball hoop sprites
 - art: winning player animation
 - art: losing player animation
@@ -86,3 +86,4 @@ X sound: unique sfx for players on left & right side of the screen [not enough s
 * ui: help screen
 * art: sand tiles? (slow running)
 * bug: guess what the background a spawned object should be replaced with.
+* fx: refill station animation, to replace hacky red bar

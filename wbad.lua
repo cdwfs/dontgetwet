@@ -145,6 +145,7 @@ TID_SIGN3=14
 -- sprite ids
 SID_PLAYER=288
 SID_REFILL=283
+SID_REFILL_EMPTY={297,313,329}
 SID_BUSH=263
 SID_ELEPHANT=299
 SID_TREE=269
@@ -954,7 +955,7 @@ function about_draw(_ENV)
   draw_ammo_ui(xui0+w+2,yui0+58,K_MAX_AMMO,TEAM_COLORS[1])
   -- explain refill stations
   local xref0,yref0=2,yui0+73
-  dsprint("Touching a bowl of balloons restores",xref0,yref0+1,C_WHITE,C_BLACK)
+  dsprint("Touching a tub of balloons restores",xref0,yref0+1,C_WHITE,C_BLACK)
   dsprint("both energy and water balloons.",xref0,yref0+10,C_WHITE,C_BLACK)
   local w=dsprint("The bowl takes some time to refill",xref0,yref0+19,C_WHITE,C_BLACK)
   refill.pos=v2(xref0+w+4,yref0+17)
@@ -2351,15 +2352,17 @@ function draw_ammo_ui(x,y,count,color)
 end
 
 function draw_refill(r)
- for _,s in ipairs(r.sparkles) do
-  s:draw()
+ if r.cooldown==0 then
+  for _,s in ipairs(r.sparkles) do
+   s:draw()
+  end
  end
- spr(SID_REFILL, r.pos.x-4, r.pos.y,
+ local t01=r.cooldown/K_REFILL_COOLDOWN
+ local frame=1+min(t01*#SID_REFILL_EMPTY,#SID_REFILL_EMPTY-1)//1
+ local sid=t01==0 and SID_REFILL
+    or SID_REFILL_EMPTY[frame]
+ spr(sid, r.pos.x-4, r.pos.y,
   C_TRANSPARENT, 1,0,0, 2,1)
- if r.cooldown>0 then
-  local h=8*r.cooldown/K_REFILL_COOLDOWN
-  rect(r.pos.x-1,r.pos.y+8-h,10,h,C_RED)
- end
 end
 
 function draw_player(p)
