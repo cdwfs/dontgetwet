@@ -403,9 +403,13 @@ end
 
 -- palette fade
 original_palette={} -- 48 RGB bytes
+palbytes={}
 function fade_init_palette()
  for i=0,47 do
   original_palette[i]=peek(0x3FC0+i)
+ end
+ for i=0,7 do
+  palbytes[i]=peek(0x03FF0+i)
  end
 end
 -- Sets the palette to (1-t)*original
@@ -2143,10 +2147,6 @@ function draw_player(p)
  local PAL_C2=2
  local PAL_H=12
  local PAL_S=14
- local prevp={} -- palette bytes to restore
- for i=0,7 do
-  prevp[i]=peek(0x03FF0+i)
- end
  if p.eliminated then
   -- swap to "soaked" palette
   poke4(2*0x03FF0,C_DARKBLUE)
@@ -2162,14 +2162,6 @@ function draw_player(p)
  end
  local ybody,yface=p.pos.y+p.sink,
                    p.pos.y+p.sink-8
- -- head-bob?
- --local ai=p.anims.s[1].i
- --local ac=p.anims.s[1].c
- --if not v2eq(p.move,v2zero)
- --and (ai==1 or ai==3)
- --and (ac>=4 and ac<=5) then
- -- yface=yface+1
- --end
  push_clip(p.pos.x-4-camera_x,
            p.pos.y-8-camera_y,
            16,16)
@@ -2179,7 +2171,7 @@ function draw_player(p)
      C_TRANSPARENT, 1,p.hflip,0, 2,1)
  pop_clip()
  for i=0,7 do
-  poke(0x03FF0+i,prevp[i])
+  poke(0x03FF0+i,_g.palbytes[i])
  end
  -- draw balloon and reticle
  -- if winding up
