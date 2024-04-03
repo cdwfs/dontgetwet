@@ -1,9 +1,9 @@
 -- title:   Don't Get Wet
 -- author:  Bitterly Indifferent Games
 -- desc:    A playground water-balloon fight for 2-4 players.
--- site:    github.com/cdwfs/wbad
+-- site:    github.com/cdwfs/dontgetwet
 -- license: Creative Commons Zero v1.0 Universal
--- version: 0.8
+-- version: 1.0
 -- script:  lua
 
 ------ GLOBALS
