@@ -1,5 +1,4 @@
 TODO:
-- ui: simplify help screen
 - ui: credits screen
 - publish: remove "kill everyone but player one" hack
 - publish: remove FPS display (or make it harder to trigger by accident)
@@ -95,3 +94,4 @@ X art: up & down leg animations are currently the same. Differentiate? Add a tsh
 * bug: fix incorrect viewports for discontinuous PIDs (like P1+P4)
 * ui: print player number next to energy bar
 * balance: reduce sudden death counter. I've NEVER seen it in practice.
+* ui: simplify help screen

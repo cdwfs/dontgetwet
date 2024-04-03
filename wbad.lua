@@ -839,11 +839,15 @@ function about_enter(args)
   screens={"Help","About","Credits"},
   screen=1,
   scroll=0,
-  scroll_max={90,0,0}, -- per screen
+  scroll_max={190,0,0}, -- per screen
   move_player=create_player(1,1),
   run_player=create_player(2,2),
   throw_player=create_player(3,3),
-  refill=create_refill(8,8),
+  tldr_player=create_player(4,4),
+  refills={
+   create_refill(8,8),
+   create_refill(8,8),
+  },
   move_bounds={110,180}
  })
  local ab=mode_about
@@ -855,6 +859,8 @@ function about_enter(args)
  ab.run_player.anims:to("walklr")
  ab.throw_player.pos=v2(50,50)
  ab.throw_player.anims:to("idlelr")
+ ab.tldr_player.pos=v2(50,50)
+ ab.tldr_player.anims:to("idlelr")
  return mode_about
 end
 
@@ -930,9 +936,11 @@ function about_update(_ENV)
  run_player.anims:nextv()
  -- TODO: demo throwing
 
- -- demo refill station
- for _,s in ipairs(refill.sparkles) do
-  s:update()
+ -- demo refill stations
+ for _,r in ipairs(refills) do
+  for _,s in ipairs(r.sparkles) do
+   s:update()
+  end
  end
 end
 
@@ -957,8 +965,51 @@ function about_draw(_ENV)
  clip(0,9,K_SCREEN_W,K_SCREEN_H-19)
  camera(0,scroll)
  if screen==1 then -- HELP
+  -- TLDR
+  rectb(10,10,K_SCREEN_W/2,K_SCREEN_H/2,C_WHITE)
+  rect(11,11,K_SCREEN_W/2-2,K_SCREEN_H/2-2,C_DARKGREEN)
+  oprint("P1",12,12,TEAM_COLORS[1],TEAM_COLORS2[1])
+  draw_energy_ui(24,12,32,5,K_MAX_ENERGY*0.75)
+  print("Energy",25,19,C_WHITE,false,1,true)
+  draw_ammo_ui(58,14,K_MAX_AMMO,TEAM_COLORS[1])
+  print("Balloons",59,19,C_WHITE,false,1,true)
+  tldr_player.pos=v2(10+K_SCREEN_W/4-4,10+K_SCREEN_H/4)
+		draw_player(tldr_player)
+  print("Refill these\n    with this",
+   15,37,C_WHITE,false,1,true)
+  line(39,27,48,35,C_WHITE)
+  line(40,26,39,31,C_WHITE)
+  line(39,26,44,26,C_WHITE)
+  line(56,27,48,35,C_WHITE)
+  line(56,26,52,26,C_WHITE)
+  line(57,26,57,31,C_WHITE)
+  refills[1].pos=v2(
+   tldr_player.pos.x-24,tldr_player.pos.y+20)
+  line(refills[1].pos.x+4,50,
+       refills[1].pos.x+4,refills[1].pos.y-4,C_WHITE)
+  line(refills[1].pos.x+0,refills[1].pos.y-8,
+       refills[1].pos.x+4,refills[1].pos.y-4,C_WHITE)
+  line(refills[1].pos.x+8,refills[1].pos.y-8,
+       refills[1].pos.x+4,refills[1].pos.y-4,C_WHITE)
+  draw_refill(refills[1])
+  dsprint("TLDR:",K_SCREEN_W/2+20,12,C_WHITE,C_BLACK)
+  spr(btnspr(0),K_SCREEN_W/2+20,22,C_TRANSPARENT)
+  spr(btnspr(1),K_SCREEN_W/2+30,22,C_TRANSPARENT)
+  spr(btnspr(2),K_SCREEN_W/2+40,22,C_TRANSPARENT)
+  spr(btnspr(3),K_SCREEN_W/2+50,22,C_TRANSPARENT)
+  dsprint("Move",K_SCREEN_W/2+60,23,C_WHITE,C_BLACK)
+  spr(btnspr(4),K_SCREEN_W/2+20,32,C_TRANSPARENT)
+  dsprint("Run",K_SCREEN_W/2+30,33,C_WHITE,C_BLACK)
+  spr(btnspr(5),K_SCREEN_W/2+20,42,C_TRANSPARENT)
+  dsprint("Throw Balloon",K_SCREEN_W/2+30,43,C_WHITE,C_BLACK)
+
+  dsprint("Scroll down\nfor details)",K_SCREEN_W/2+30,63,C_WHITE,C_BLACK)
+  line(2,80,K_SCREEN_W-4,80,C_WHITE)
+  line(2,82,K_SCREEN_W-4,82,C_WHITE)
+  dsprint("Manual",90,85,C_WHITE,C_BLACK,false,2)
+
   -- explain UI
-  local xui0,yui0=2,10
+  local xui0,yui0=2,110
   local w=dsprint("This bar shows your energy:",xui0,yui0+1,C_WHITE,C_BLACK)
   draw_energy_ui(xui0+w+2,yui0+2,32,5,K_MAX_ENERGY*0.75)
   dsprint("Walking, running, and getting hit",xui0,yui0+10,C_WHITE,C_BLACK)
@@ -972,8 +1023,8 @@ function about_draw(_ENV)
   dsprint("Touching a tub of balloons restores",xref0,yref0+1,C_WHITE,C_BLACK)
   dsprint("both energy and water balloons.",xref0,yref0+10,C_WHITE,C_BLACK)
   local w=dsprint("The bowl takes some time to refill",xref0,yref0+19,C_WHITE,C_BLACK)
-  refill.pos=v2(xref0+w+4,yref0+17)
-  draw_refill(refill)
+  refills[2].pos=v2(xref0+w+4,yref0+17)
+  draw_refill(refills[2])
   dsprint("after use.",xref0,yref0+28,C_WHITE,C_BLACK)
   -- How to move
   local xmove0,ymove0=2,yref0+46
