@@ -1386,20 +1386,20 @@ function cb_enter(args)
  })
  local cb=mode_combat
  -- adjust clip rects based on player count
- local pid_clips={
+ local player_clips={
   {  0, 0,240,136},
   {120, 0,120,136},
   {  0,68,120, 68},
   {120,68,120, 68},
  }
  if #cb.players>=2 then
-  pid_clips[1][3]=120
+  player_clips[1][3]=120
  end
  if #cb.players>=3 then
-  pid_clips[1][4]=68
-  pid_clips[2][4]=68
+  player_clips[1][4]=68
+  player_clips[2][4]=68
  end
- cb.clips=pid_clips
+ cb.clips=player_clips
  -- parse map and spawn entities at
  -- indicated locations
  for my=0,135 do
@@ -1562,17 +1562,17 @@ function create_player(pid,team)
  return p
 end
 function cb_spawn_players(cb)
- for _,p in ipairs(cb.players) do
+ for i,p in ipairs(cb.players) do
   -- choose a spawn tile
   local ispawn=math.random(#cb.player_spawns)
   p.fpos=v2scl(
    v2cpy(cb.player_spawns[ispawn]),8)
   table.remove(cb.player_spawns,ispawn)
   p.pos=v2flr(v2add(p.fpos,v2(0.5,0.5)))
-  local pclip=cb.clips[p.pid]
+  p.clipr=cb.clips[i]
   p.vpcenter=v2(
-   pclip[1]+pclip[3]/2,
-   pclip[2]+pclip[4]/2)
+   p.clipr[1]+p.clipr[3]/2,
+   p.clipr[2]+p.clipr[4]/2)
   p.focus=v2cpy(p.pos)
  end
 end
@@ -2325,13 +2325,12 @@ function cb_draw(_ENV)
  cls(C_BLACK)
  -- draw each player's viewport
  for _,p in ipairs(players) do
-  local pclip=clips[p.pid]
-  clip(table.unpack(pclip))
+  clip(table.unpack(p.clipr))
   camera(-(p.vpcenter.x-p.focus.x),
          -(p.vpcenter.y-p.focus.y))
   -- compute culling rectangle extents,
   -- in world-space pixels.
-  local clipdim=v2(pclip[3],pclip[4])
+  local clipdim=v2(p.clipr[3],p.clipr[4])
   local cull0=v2flr(
    v2sub(p.focus,v2scl(clipdim,0.5)))
   local cull1=v2add(cull0,clipdim)
@@ -2452,8 +2451,8 @@ function cb_draw(_ENV)
   -- restore screen-space camera
   camera(0,0)
   -- draw player energy and ammo bars
-  draw_energy_ui(pclip[1]+2,pclip[2]+2,32,5,p.energy)
-  draw_ammo_ui(pclip[1]+39,pclip[2]+4,p.ammo,p.color)
+  draw_energy_ui(p.clipr[1]+2,p.clipr[2]+2,32,5,p.energy)
+  draw_ammo_ui(p.clipr[1]+39,p.clipr[2]+4,p.ammo,p.color)
   -- for low-energy/ammo players, draw "refill" prompt
   if (p.energy<K_ENERGY_WARNING or p.ammo==0)
   and not p.eliminated
@@ -2490,7 +2489,7 @@ function cb_draw(_ENV)
    local w=print("ELIMINATED!",p.vpcenter.x-36,p.vpcenter.y-18,p.color,true)
   end
   -- draw viewport border.
-  rectb(pclip[1],pclip[2],pclip[3],pclip[4],p.color)
+  rectb(p.clipr[1],p.clipr[2],p.clipr[3],p.clipr[4],p.color)
  end
  -- draw sudden death message
  if mode_frames>=K_SUDDEN_DEATH_START then
