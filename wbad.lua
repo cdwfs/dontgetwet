@@ -1022,7 +1022,11 @@ K_JOINED=1
 function team_enter(args)
  sync(1|2|4|32,0)
  camera(0,0)
- cls(0)
+ vbank(1)
+ poke(0x03FF8,C_BLACK) -- set overlay transparency color
+ cls(C_BLACK)
+ vbank(0)
+ cls(C_BLACK)
  if music_state()==255 then
   music(MUS_MENU)
  end
@@ -1045,17 +1049,21 @@ function team_enter(args)
   can_play=false,
   history={{},{},{},{}},
   ihistory={1,1,1,1},
+  balloons={},
+  btargets={},
+  bsplatr=80,
  })
+ local tm=mode_team
  for i=1,4 do
   local p=create_player(i,i)
   p.pos=v2(20+i*40-5,K_SCREEN_H/2)
-  add(mode_team.players,p)
+  add(tm.players,p)
  end
  -- copy previous players if this is
  -- a rematch
  for _,pp in ipairs(args.prev_players or {}) do
-  mode_team.state[pp.pid]=K_JOINED
-  local p=mode_team.players[pp.pid]
+  tm.state[pp.pid]=K_JOINED
+  local p=tm.players[pp.pid]
   p.team=pp.team
   p.color=pp.color
   p.color2=pp.color2
@@ -1066,6 +1074,19 @@ function team_enter(args)
   p.facelr=pp.facelr
   p.anims=pp.anims
   p.yerrik_dream_mode=nil
+ end
+ local sr=tm.bsplatr
+ local sw=1+K_SCREEN_W/(2*sr)
+ local sh=1+K_SCREEN_H/(2*sr)
+ for y=0,sh do
+  for x=0,sw do
+   add(tm.btargets,
+    v2(x*2*sr,y*2*sr)
+   )
+   add(tm.btargets,
+    v2(x*2*sr+sr,y*2*sr+sr)
+   )
+  end
  end
  return mode_team
 end
@@ -1180,12 +1201,11 @@ function team_update(_ENV)
      sfx(SFX_MENU_MOVE,4*12+pid_notes[pid],-1,K_CHAN_SFX)
      p:set_team(mod1n(p.team+3,4))
     elseif btnp(pb0+4) then
-     h[mod1n(hi,K_HISTORY_MAX)]=0
-     ihistory[pid]=hi+1
+     -- handled above, doesn't go into history
     elseif btnp(pb0+5) then
      -- handled above, doesn't go into history
     elseif btnp(pb0+6) then
-     h[mod1n(hi,K_HISTORY_MAX)]=1
+     h[mod1n(hi,K_HISTORY_MAX)]=6
      ihistory[pid]=hi+1
     elseif btnp(pb0+7) then
      huevos(h,hi,p)
@@ -1224,28 +1244,84 @@ function team_update(_ENV)
    -- if the teams are valid
    sfx(SFX_MENU_CONFIRM,"D-5",-1,K_CHAN_SFX)
    ignore_input=true
-   add_frame_hook(
-    function(nleft,ntotal)
-     fade_black((ntotal-nleft)/ntotal)
-    end,
-    function()
-     local active_players={}
-     for _,p in ipairs(players) do
-      if state[p.pid]==K_JOINED then
-       add(active_players,p)
-      end
-     end
-     set_next_mode("combat",{
-      players=active_players,
-     })
-    end,
-    30)
+   -- clear overlay
+   vbank(1)
+   cls(C_BLACK)
+   vbank(0)
+   -- get quick list of active players
+   -- to throw transition balloons from
+   local ps={}
+   for pid,p in ipairs(players) do
+    if state[pid]==K_JOINED then
+     add(ps,p)
+     p.dir=v2(0,1)
+     p.anims:to("idled") -- face screen
+    end
+   end
+   -- spawn all transition balloons
+   for i,targ in ipairs(btargets) do
+    local p=rndt(ps)
+    add(balloons,{
+     pos0=v2cpy(p.pos),
+     pos=v2cpy(p.pos),
+     pos1=v2cpy(targ),
+     t=-math.random(60)//1,
+     t1=60+math.random(30)//1,
+     pid=p.pid,
+     team=p.team,
+     pp=p.yerrik_dream_mode,
+     color=p.color,
+    })
+   end
   end
  end
+ -- update transition balloons
+ local balloons2={}
+ for _,b in ipairs(balloons) do
+  b.t=b.t+1
+  if b.t>b.t1 then
+   sfx(SFX_BALLOONPOP,6*12+math.random(0,4),
+    -1,K_CHAN_NOISE)
+   vbank(1)
+   circ(b.pos.x,b.pos.y,bsplatr,
+    b.pp and C_YELLOW or C_LIGHTBLUE)
+   vbank(0)
+  else
+   add(balloons2,b)
+  end
+  if b.t==0 then
+   music()
+   sfx(SFX_THROW,3*12+math.random(7,11),
+    -1,b.pid-1)
+  elseif b.t>0 then
+   b.pos=v2lerp(b.pos0,b.pos1,b.t/b.t1)
+  end
+ end
+ -- after the last transition balloon
+ -- has popped...
+ if #balloons>0 and #balloons2==0 then
+  -- make sure the overlay is totally filled
+  vbank(1)
+  cls(balloons[1].pp and C_YELLOW or C_LIGHTBLUE)
+  vbank(0)
+  local active_players={}
+  for _,p in ipairs(players) do
+   if state[p.pid]==K_JOINED then
+    add(active_players,p)
+   end
+  end
+  delay(
+   function()
+    set_next_mode("combat",{
+     players=active_players,
+    })
+   end,20)
+ end
+ balloons=balloons2
 end
 
 function team_draw(_ENV)
- cls(4)
+ cls(C_DARKBLUE)
  dsprint("SELECT TEAMS",52,2,
   C_WHITE,C_BLACK,false,2)
  for pid,p in ipairs(players) do
@@ -1274,6 +1350,15 @@ function team_draw(_ENV)
  end
  spr(btnspr(5,1),K_SCREEN_W-34,K_SCREEN_H-9, C_TRANSPARENT)
  dsprint("Back",K_SCREEN_W-25,K_SCREEN_H-8,C_WHITE,C_DARKGREY,true)
+ -- draw transition balloons
+ for _,b in ipairs(balloons) do
+  local t01=b.t/b.t1
+  if t01>=0 then
+   draw_balloon(b.pos.x,b.pos.y,
+    lerp(1,bsplatr,t01*t01),b.color,
+    b.t,b.t1,K_SCREEN_H/2)
+  end
+ end
 end
 
 ------ COMBAT
@@ -1283,14 +1368,6 @@ mode_combat={}
 function cb_enter(args)
  sync(1|2|4|32,0)
  fade_init_palette()
- -- fade in from black
- fade_black(1)
- add_frame_hook(
-  function(nleft,ntotal)
-   fade_black(nleft/ntotal)
-  end,
-  function() fade_black(0) end,
-  60)
  camera(0,0)
  mode_combat=obj({
   update=cb_update,
@@ -1304,6 +1381,7 @@ function cb_enter(args)
   refill_pings={},
   -- scenery entities
   obstacles={},
+  dissolve={},
   end_hook=nil,
  })
  local cb=mode_combat
@@ -1363,9 +1441,13 @@ function cb_enter(args)
   end
  end
  -- spawn players
- cb_init_players(cb)
+ cb_spawn_players(cb)
  -- start music
  music(MUS_COMBAT,-1,-1,true,true)
+ -- initialize dissolve array
+ for x=1,K_SCREEN_W do
+  add(cb.dissolve,0)
+ end
  return cb
 end
 
@@ -1479,7 +1561,7 @@ function create_player(pid,team)
  p.reset(p,pid,team)
  return p
 end
-function cb_init_players(cb)
+function cb_spawn_players(cb)
  for _,p in ipairs(cb.players) do
   -- choose a spawn tile
   local ispawn=math.random(#cb.player_spawns)
@@ -2220,6 +2302,24 @@ function create_refill(mx,my)
 end
 
 function cb_draw(_ENV)
+ -- update dissolve
+ if dissolve then
+  vbank(1)
+  local mind=K_SCREEN_H
+  for i=1,#dissolve do
+   mind=min(mind,dissolve[i])
+   if dissolve[i]<K_SCREEN_H then
+    x=i-1
+    local d2=dissolve[i]+1+rnd(3)
+    line(x,dissolve[i],x,d2//1,C_BLACK)
+    dissolve[i]=d2
+   end
+  end
+  if mind==K_SCREEN_H then
+   dissolve=nil
+  end
+  vbank(0)
+ end
  clip()
  cls(C_BLACK)
  -- draw each player's viewport
@@ -2288,7 +2388,7 @@ function cb_draw(_ENV)
      order=b.pos.y, order2=b.pos.x,
      f=draw_balloon, args={
       b.pos.x, b.pos.y,
-      b.r, b.color, b.t, b.t1
+      b.r, b.color, b.t, b.t1, 6
      }
     })
    end
@@ -2431,12 +2531,13 @@ function balloon_origin(pos,dir)
  end
 end
 
-function draw_balloon(x,y,r,color,t,t1)
+function draw_balloon(x,y,r,color,t,t1,h)
  local t=t or 0
  local t1=t1 or 1
- local yoff=6*sin(-0.5*t/t1)
- local rx,ry=r+sin(.03*t)/2,
-             r+cos(1.5+.04*t)/2
+ local h=h or 6
+ local yoff=h*sin(-0.5*t/t1)
+ local rx,ry=r+r*sin(.03*t)/3,
+             r+r*cos(1.5+.04*t)/3
  elli(x,y-yoff,rx+1,ry+1,C_BLACK)
  elli(x,y-yoff,rx,ry,color)
 end
