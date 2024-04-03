@@ -1063,6 +1063,7 @@ function team_enter(args)
   p.faceu=pp.faceu
   p.faced=pp.faced
   p.facelr=pp.facelr
+  p.anims=pp.anims
  end
  return mode_team
 end
@@ -1429,14 +1430,16 @@ function create_player(pid,team)
    self.ammo=K_MAX_AMMO
    self.eliminated=false
    self.windup=0
-   self.anims=animgraph({
-    idlelr={anim({428},8),"idlelr"},
-    idled={anim({444},8),"idled"},
-    idleu={anim({460},8),"idleu"},
-    walklr={anim({426,428,430,428},8),"walklr"},
-    walkd={anim({442,444,446,444},8),"walkd"},
-    walku={anim({458,460,462,460},8),"walku"},
-   },"idlelr")
+   if self.facelr~=368 then
+    self.anims=animgraph({
+     idlelr={anim({428},8),"idlelr"},
+     idled={anim({444},8),"idled"},
+     idleu={anim({460},8),"idleu"},
+     walklr={anim({426,428,430,428},8),"walklr"},
+     walkd={anim({442,444,446,444},8),"walkd"},
+     walku={anim({458,460,462,460},8),"walku"},
+    },"idlelr")
+   end
    self.hflip=0
    self.anims:to("idlelr")
   end,
