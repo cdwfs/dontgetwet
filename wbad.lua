@@ -1355,7 +1355,7 @@ function team_draw(_ENV)
   local t01=b.t/b.t1
   if t01>=0 then
    draw_balloon(b.pos.x,b.pos.y,
-    lerp(1,bsplatr,t01*t01),b.color,
+    lerp(1,bsplatr,t01*t01),b.team,
     b.t,b.t1,K_SCREEN_H/2)
   end
  end
@@ -2389,7 +2389,7 @@ function cb_draw(_ENV)
      order=b.pos.y, order2=b.pos.x,
      f=draw_balloon, args={
       b.pos.x, b.pos.y,
-      b.r, b.color, b.t, b.t1, 6
+      b.r, b.team, b.t, b.t1, 6
      }
     })
    end
@@ -2532,15 +2532,21 @@ function balloon_origin(pos,dir)
  end
 end
 
-function draw_balloon(x,y,r,color,t,t1,h)
+function draw_balloon(x,y,r,team,t,t1,h)
  local t=t or 0
  local t1=t1 or 1
  local h=h or 6
  local yoff=h*sin(-0.5*t/t1)
  local rx,ry=r+r*sin(.03*t)/3,
              r+r*cos(1.5+.04*t)/3
- elli(x,y-yoff,rx+1,ry+1,C_BLACK)
- elli(x,y-yoff,rx,ry,color)
+ elli(x,y-yoff,rx,ry,TEAM_COLORS2[team])
+ elli(x,y-yoff-1,rx,ry,TEAM_COLORS[team])
+ ellib(x,y-yoff,rx+1,ry+1,C_BLACK)
+ -- HACK: fake specular highlight
+ -- on small in-game balloons
+ if r==K_BALLOON_RADIUS then
+  pix(x+r/2,y-yoff-r/2,C_WHITE)
+ end
 end
 
 function draw_energy_ui(x,y,w,h,energy)
@@ -2645,7 +2651,7 @@ function draw_player(p)
  if p.windup>0 then
   local borig=balloon_origin(p.pos,p.dir)
   draw_balloon(borig.x,borig.y,
-   K_BALLOON_RADIUS,p.color)
+   K_BALLOON_RADIUS,p.team)
   local target=balloon_throw_target(p)
   for i=1,4 do
    local pt=v2lerp(borig,target,i/4)
@@ -2856,7 +2862,7 @@ function vt_draw(_ENV)
  -- draw loser balloons
  for _,b in ipairs(balloons) do
   draw_balloon(b.pos.x,b.pos.y,
-   b.r,b.color,b.t,b.t1,
+   b.r,b.team,b.t,b.t1,
    K_SCREEN_H/4)
  end
  -- draw water drops
