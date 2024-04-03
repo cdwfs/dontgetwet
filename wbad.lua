@@ -7,6 +7,7 @@
 -- script:  lua
 
 ------ GLOBALS
+K_DEV_MODE=false -- enables boring dev features. Nothing exciting, I promise.
 
 -- constants
 K_MAX_ENERGY=100
@@ -623,7 +624,7 @@ function TIC()
  draw_avg=round2(draw_avg/#draw_time_history)
  camera()
  clip()
- if btnp(6) then show_fps=not show_fps end
+ if K_DEV_MODE and btnp(6) then show_fps=not show_fps end
  if show_fps then
   print("update: "..update_ms.." avg: "..update_avg,4,4,C_WHITE,true)
   print("  draw: "..draw_ms.." avg: "..draw_avg,4,12,C_WHITE,true)
@@ -1631,7 +1632,7 @@ end
 function cb_update(_ENV)
  -- hack: kill all other players to
  -- advance to victory
- if btnp(7) then
+ if K_DEV_MODE and btnp(7) then
   for _,p in ipairs(players) do
    if p.pid>1 then
     p.eliminated=true
