@@ -91,5 +91,6 @@ X art: winning player animation [art lock]
 X art: losing player animation [art lock]
 X art: up & down leg animations are currently the same. Differentiate? Add a tshirt logo? [art lock]
 * fx: victory screen: a steady rain of the winning team's balloons falling and exploding on losing players
+* fx: better balloon shading
 * bug: fix incorrect viewports for discontinuous PIDs (like P1+P4)
 * ui: print player number next to energy bar

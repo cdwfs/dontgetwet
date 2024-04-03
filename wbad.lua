@@ -2751,13 +2751,13 @@ function vt_enter(args)
   add(vt.balloons,{
    pos0=v2cpy(bp),
    pos=v2cpy(bp),
+   shadowy=bp.y,
    pos1=v2add(rndt(vt.targets),
     v2(math.random(-6,6),math.random(-12,2))),
    t=math.random(0,bt), -- stagger initial throws
    t1=bt,
    --pid=p.pid, -- don't think we need a pid in this path
    team=vt.winning_team,
-   r=K_BALLOON_RADIUS,
    pp=vt.players[1].yerrik_dream_mode,
    color=TEAM_COLORS[vt.winning_team],
   })
@@ -2810,12 +2810,17 @@ function vt_update(_ENV)
    b.pos0=v2(rndt({-10,K_SCREEN_W+10}),
     math.random(0,K_SCREEN_H))
    b.pos=v2cpy(b.pos0)
+   b.shadowy=lerp(b.pos0.y,grnd_y,b.t/b.t1)
    pos1=v2add(rndt(targets),
     v2(math.random(-6,6),math.random(-12,2)))
+   b.r=K_BALLOON_RADIUS
    b.t=0
    b.t1=60+math.random(30)
   elseif b.t>=0 then
    b.pos=v2lerp(b.pos0,b.pos1,b.t/b.t1)
+   b.shadowy=lerp(b.pos0.y,grnd_y,b.t/b.t1)
+   local br0=lerp(1,4,b.pos0.y/K_SCREEN_H)
+   b.r=lerp(br0,K_BALLOON_RADIUS,b.t/b.t1)
   end
  end
  -- update water drops
@@ -2857,7 +2862,7 @@ function vt_draw(_ENV)
   if p.team==winning_team then
    local srx=lerp(5,3,(p.y0-p.pos.y)/10)
    local sry=lerp(2,1,(p.y0-p.pos.y)/10)
-   elli(p.pos.x+4,p.y0+7,srx,sry,C_DARKGREY)
+   elli(p.pos.x+4,p.y0+7,srx,sry,C_BLACK)
   else
    elli(p.pos.x+4,p.y0+7,18,4,
         p.yerrik_dream_mode and C_YELLOW or C_LIGHTBLUE)
@@ -2866,16 +2871,30 @@ function vt_draw(_ENV)
   end
  end
  -- draw loser balloon shadows
+ table.sort(balloons,
+  function(a,b) -- sort by height above ground
+   return abs(0.5-(a.t/a.t1))
+        < abs(0.5-(b.t/b.t1))
+  end)
  for _,b in ipairs(balloons) do
-  local shadowy=lerp(b.pos0.y,grnd_y,b.t/b.t1)
-  elli(b.pos.x,shadowy,b.r,1,
-   K_DARKGREY)
+  local bt01=b.t/b.t1
+  local bs=C_BLACK
+  if bt01>0.1 and bt01<0.9 then
+   bs=C_DARKGREY
+  end
+  elli(b.pos.x,b.shadowy,b.r,1,bs)
  end
  -- draw players
  for _,p in ipairs(players) do
   draw_player(p)
  end
  -- draw loser balloons
+ table.sort(balloons,
+  function(a,b) -- sort back to front
+   return a.shadowy==b.shadowy
+      and a.pos.x<b.pos.x
+      or  a.shadowy<b.shadowy
+  end)
  for _,b in ipairs(balloons) do
   draw_balloon(b.pos.x,b.pos.y,
    b.r,b.team,b.t,b.t1,
