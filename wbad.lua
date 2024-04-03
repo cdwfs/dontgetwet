@@ -2689,17 +2689,20 @@ function vt_enter(args)
  -- place players
  local x0,x1=60,180
  local dx=(x1-x0)/(#vt.players-1)
- for _,p in ipairs(vt.players) do
+ for i,p in ipairs(vt.players) do
   p:reset()
-  p.pos=v2(flr(x0+(p.pid-1)*dx-4),
-           vt.grnd_y)
-  p.y0=vt.grnd_y
+  p.pos=v2(flr(x0+(i-1)*dx-4),
+           vt.grnd_y-8)
+  p.y0=p.pos.y -- jump pos
   p.dir=v2(1,0)
   p.hflip=false
   p.anims:to("idlelr")
  end
  -- Make a list of all pixels in a
  -- sprite that are not transparent.
+ -- TODO: this is super overkill, just
+ -- spawn drops in a rect like we do
+ -- in-game.
  local sprites={464,465,}
  for _,s in ipairs(sprites) do
   local sx,sy=(s-sprites[1])%16,
