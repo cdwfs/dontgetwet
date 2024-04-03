@@ -1,12 +1,11 @@
 TODO:
-- feature: enable hidden characters. Check for button combo at player creation time?
-- fx: spawn splash particles when characters enter or move in water
+- ui: simplify help screen
 - ui: credits screen
-- bug: remove "kill everyone but player one" hack
-- art: Basketball hoop sprites
-- art: winning player animation
-- art: losing player animation
-- art: up & down leg animations are currently the same. Differentiate? Add a tshirt logo?
+- publish: remove "kill everyone but player one" hack
+- publish: remove FPS display (or make it harder to trigger by accident)
+- publish: fix cover image (wrong palette, currently)
+- publish: make itch project site
+- fx: spawn splash particles when characters enter or move in water
   
 DONE:
 * strip invisibrawl arrows/blood code
@@ -87,4 +86,8 @@ X sound: unique sfx for players on left & right side of the screen [not enough s
 * fx: refill station animation, to replace hacky red bar
 * eggs
 * fx: mode transition: dozens of balloons fly at the screen and explode in splashes, which wash away to reveal the new mode
+X art: Basketball hoop sprites [art lock]
+X art: winning player animation [art lock]
+X art: losing player animation [art lock]
+X art: up & down leg animations are currently the same. Differentiate? Add a tshirt logo? [art lock]
 * fx: victory screen: a steady rain of the winning team's balloons falling and exploding on losing players
