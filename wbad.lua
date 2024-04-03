@@ -2335,8 +2335,7 @@ function create_refill(mx,my)
   local s=obj({
    ttl=0,
    reset=function(self)
-    self.pos=v2(r.pos.x+flr(rnd(9)),
-                r.pos.y+3)
+    self.pos=v2(flr(rnd(9)),3)
     self.ttl=flr(rnd(35,45))
    end,
    update=function(self)
@@ -2348,7 +2347,7 @@ function create_refill(mx,my)
      self.pos.y=self.pos.y-0.3
     end
    end,
-   draw=function(self)
+   draw=function(self,rpos)
     local grad={
      C_DARKBLUE,
      C_LIGHTBLUE,
@@ -2357,7 +2356,7 @@ function create_refill(mx,my)
      C_WHITE,
      C_WHITE,
     }
-    pix(self.pos.x,self.pos.y,
+    pix(rpos.x+self.pos.x,rpos.y+self.pos.y,
      grad[clamp(#grad*(self.ttl/20),1,#grad)//1])
    end,
   })
@@ -2628,7 +2627,7 @@ end
 function draw_refill(r)
  if r.cooldown==0 then
   for _,s in ipairs(r.sparkles) do
-   s:draw()
+   s:draw(r.pos)
   end
  end
  local t01=r.cooldown/K_REFILL_COOLDOWN
