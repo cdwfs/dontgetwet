@@ -417,6 +417,16 @@ function dsprint(msg,x,y,c,cs,...)
  return print(msg,x,y,c,...)
 end
 
+-- print with a full outline
+function oprint(msg,x,y,c,co,...)
+ print(msg,x,y-1,co,...)
+ print(msg,x,y+1,co,...)
+ print(msg,x-1,y,co,...)
+ print(msg,x+1,y,co,...)
+ return print(msg,x,y,c,...)
+end
+
+
 -- palette fade
 original_palette={} -- 48 RGB bytes
 palbytes={}
@@ -2450,9 +2460,10 @@ function cb_draw(_ENV)
   end
   -- restore screen-space camera
   camera(0,0)
-  -- draw player energy and ammo bars
-  draw_energy_ui(p.clipr[1]+2,p.clipr[2]+2,32,5,p.energy)
-  draw_ammo_ui(p.clipr[1]+39,p.clipr[2]+4,p.ammo,p.color)
+  -- draw player UI
+  local msgw=oprint("P"..p.pid,p.clipr[1]+2,p.clipr[2]+2,p.color,p.color2)
+  draw_energy_ui(p.clipr[1]+msgw+2,p.clipr[2]+2,32,5,p.energy)
+  draw_ammo_ui(p.clipr[1]+msgw+39,p.clipr[2]+4,p.ammo,p.color)
   -- for low-energy/ammo players, draw "refill" prompt
   if (p.energy<K_ENERGY_WARNING or p.ammo==0)
   and not p.eliminated
