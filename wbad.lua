@@ -92,7 +92,7 @@ C_LIGHTBLUE=13
 C_TAN=14
 C_YELLOW=15
 -- sounds
-SFX_STEP=1
+SFX_SHORT_POP=1
 SFX_SPRINKLE=2
 SFX_MENU_CONFIRM=18
 SFX_MENU_MOVE=19
@@ -2684,6 +2684,8 @@ function vt_enter(args)
   drop_spawns={},
   drops={},
   ignore_input=true,
+  balloons={},
+  targets={},
  })
  local vt=mode_victory
  -- place players
@@ -2718,6 +2720,30 @@ function vt_enter(args)
    end
   end
  end
+ -- spawn loser balloons
+ for _,p in ipairs(vt.players) do
+  if p.team~=vt.winning_team then
+   add(vt.targets,v2add(p.pos,v2(4,4)))
+  end
+ end
+ for i=1,20*#vt.targets do
+  local bp=v2(rndt({-10,K_SCREEN_W+10}),
+   math.random(0,K_SCREEN_H/2))
+  local bt=60+math.random(30)//1
+  add(vt.balloons,{
+   pos0=v2cpy(bp),
+   pos=v2cpy(bp),
+   pos1=v2add(rndt(vt.targets),
+    v2(math.random(-6,6),math.random(-12,2))),
+   t=math.random(0,bt), -- stagger initial throws
+   t1=bt,
+   --pid=p.pid, -- don't think we need a pid in this path
+   team=vt.winning_team,
+   r=K_BALLOON_RADIUS,
+   pp=vt.players[1].yerrik_dream_mode,
+   color=TEAM_COLORS[vt.winning_team],
+  })
+ end
  music(MUS_VICTORY,-1,-1,false)
  return vt
 end
@@ -2737,6 +2763,40 @@ function vt_update(_ENV)
    set_next_mode("teams",{
     prev_players=players,
    })
+  end
+ end
+ -- update loser balloons
+ for _,b in ipairs(balloons) do
+  b.t=b.t+1
+  if b.t>b.t1 then
+   -- pop
+   local chan=(music_state()==255)
+     and math.random(0,3)
+      or K_CHAN_SFX
+   sfx(SFX_SHORT_POP,6*12+math.random(0,4),
+    -1,chan)
+   -- spawn drops from balloon
+   local bvel=v2sub(b.pos,
+    v2lerp(b.pos0,b.pos1,(b.t-1)/b.t1))
+   for i=1,20 do
+    add(drops,{
+     pos=v2cpy(b.pos),
+     y1=grnd_y,
+     vel=v2add(v2scl(bvel,0.2),v2(
+      rnd(1)-0.5,rnd(1)-0.75)),
+     pp=players[1].yerrik_dream_mode,
+    })
+   end
+   -- recycle balloon
+   b.pos0=v2(rndt({-10,K_SCREEN_W+10}),
+    math.random(0,K_SCREEN_H/2))
+   b.pos=v2cpy(b.pos0)
+   pos1=v2add(rndt(targets),
+    v2(math.random(-6,6),math.random(-12,2)))
+   b.t=0
+   b.t1=60+math.random(30)
+  elseif b.t>=0 then
+   b.pos=v2lerp(b.pos0,b.pos1,b.t/b.t1)
   end
  end
  -- update water drops
@@ -2771,7 +2831,38 @@ function vt_update(_ENV)
 end
 
 function vt_draw(_ENV)
- cls(C_BLACK)
+ cls(C_DARKBLUE)
+ -- draw player shadows
+ for _,p in ipairs(players) do
+  if p.team==winning_team then
+   local srx=lerp(5,3,(p.y0-p.pos.y)/10)
+   local sry=lerp(2,1,(p.y0-p.pos.y)/10)
+   elli(p.pos.x+4,p.y0+7,srx,sry,C_DARKGREY)
+  else
+   elli(p.pos.x+4,p.y0+7,18,4,
+        p.yerrik_dream_mode and C_BROWN or C_LIGHTBLUE)
+  end
+ end
+ -- draw loser balloon shadows
+ for _,b in ipairs(balloons) do
+  local shadowy=lerp(b.pos0.y,grnd_y,b.t/b.t1)
+  elli(b.pos.x,shadowy,b.r,1,
+   K_DARKGREY)
+ end
+ -- draw players
+ for _,p in ipairs(players) do
+  draw_player(p)
+ end
+ -- draw loser balloons
+ for _,b in ipairs(balloons) do
+  draw_balloon(b.pos.x,b.pos.y,
+   b.r,b.color,b.t,b.t1,
+   K_SCREEN_H/4)
+ end
+ -- draw water drops
+ for _,d in ipairs(drops) do
+  pix(d.pos.x,d.pos.y,d.pp and C_YELLOW or C_LIGHTBLUE)
+ end
  -- draw message
  local msgc=(winning_team>0)
    and TEAM_COLORS[winning_team]
@@ -2781,24 +2872,9 @@ function vt_draw(_ENV)
     or "It's a tie!"
  local msgw=print(msg,0,200)
  dsprint(msg,120-msgw/2,100,msgc,C_BLACK)
- -- draw players
- for _,p in ipairs(players) do
-  if p.team==winning_team then
-   local srx=lerp(5,3,(p.y0-p.pos.y)/10)
-   local sry=lerp(2,1,(p.y0-p.pos.y)/10)
-   elli(p.pos.x+4,p.y0+7,srx,sry,C_DARKGREY)
-  else
-   elli(p.pos.x+4,p.y0+7,6,3,
-        p.yerrik_dream_mode and C_BROWN or C_LIGHTBLUE)
-  end
-  draw_player(p)
- end
- -- draw water drops
- for _,d in ipairs(drops) do
-  pix(d.pos.x,d.pos.y,d.pp and C_YELLOW or C_LIGHTBLUE)
- end
-  spr(btnspr(4,1),1,K_SCREEN_H-9, C_TRANSPARENT)
-  dsprint("Rematch",10,K_SCREEN_H-8,C_WHITE,C_DARKGREY,true)
+ -- navigation controls
+ spr(btnspr(4,1),1,K_SCREEN_H-9, C_TRANSPARENT)
+ dsprint("Rematch",10,K_SCREEN_H-8,C_WHITE,C_DARKGREY,true)
 end
 -- <TILES>
 -- 000:3333333333333333333333333333333333333333333333333333333333333333
