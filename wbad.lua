@@ -2540,7 +2540,7 @@ function draw_balloon(x,y,r,team,t,t1,h)
  local rx,ry=r+r*sin(.03*t)/3,
              r+r*cos(1.5+.04*t)/3
  elli(x,y-yoff,rx,ry,TEAM_COLORS2[team])
- elli(x,y-yoff-1,rx,ry,TEAM_COLORS[team])
+ elli(x+r/4,y-yoff-r/4,rx*.75,ry*.75,TEAM_COLORS[team])
  ellib(x,y-yoff,rx+1,ry+1,C_BLACK)
  -- HACK: fake specular highlight
  -- on small in-game balloons
