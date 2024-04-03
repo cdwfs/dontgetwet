@@ -2620,7 +2620,7 @@ function draw_balloon(x,y,r,team,t,t1,h)
  local rx,ry=r+r*sin(.03*t)/3,
              r+r*cos(1.5+.04*t)/3
  elli(x,y-yoff,rx,ry,TEAM_COLORS2[team])
- elli(x+r/4,y-yoff-r/4,rx*.75,ry*.75,TEAM_COLORS[team])
+ elli(x+r/6,y-yoff-r/6,rx*.7,ry*.7,TEAM_COLORS[team])
  elli(x+r/4,y-yoff-r/4,rx*.25,ry*.25,C_WHITE)
  ellib(x,y-yoff,rx+1,ry+1,C_BLACK)
 end
