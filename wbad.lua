@@ -1063,12 +1063,26 @@ function about_draw(_ENV)
   dsprint("water-balloon fight!",x0,y0+37,C_WHITE,C_BLACK)
   dsprint("The last dry kid wins. DON'T GET WET!",x0,y0+55,C_WHITE,C_BLACK)
  elseif screen==3 then -- CREDITS
-  dsprint("Code, Music: Cort Stratton",2,10,C_WHITE,C_BLACK,true)
-  dsprint("  Pixel Art: Donald Conrad",2,18,C_WHITE,C_BLACK,true)
-  dsprint(" QA, Antics: Peter M.J. Gross",2,26,C_WHITE,C_BLACK,true)
-  dsprint("Special Thx: Lesley, Mindy",2,34,C_WHITE,C_BLACK,true)
-  dsprint("bitterlyindifferent.itch.io",40,62,C_LIGHTBLUE,C_BLACK,true)
-  dsprint("    postgoodism.itch.io",40,70,C_LIGHTBLUE,C_BLACK,true)
+  local tx,ty=2,10
+  function credline(msg,c)
+   c=c or C_WHITE
+   dsprint(msg,tx,ty,c,C_BLACK,true)
+   ty=ty+8
+  end
+  credline("  Code, Music: Cort Stratton")
+  credline("    Pixel Art: Donald Conrad")
+  credline("Character Art: Violet (Peanut Games)")
+  credline("  Playtesters: Gavin, Bauer, Isaac,")
+  credline("               Robin")
+  credline("  Special Thx: Lesley, Mindy, Erica,")
+  credline("               Peter M.J. Gross,")
+  credline("               Jared Castiglione")
+  credline("  Game Design: Lovingly pretty much")
+  credline("               ripped off from")
+  credline("               SO-GNAR by MBoffin.")
+  credline("               mboffin.itch.io/so-gnar",C_LIGHTBLUE)
+  dsprint("bitterlyindifferent.itch.io",40,110,C_LIGHTBLUE,C_BLACK,true)
+  dsprint("    postgoodism.itch.io",40,118,C_LIGHTBLUE,C_BLACK,true)
  end
  clip()
  camera()
