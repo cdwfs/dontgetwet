@@ -94,3 +94,4 @@ X art: up & down leg animations are currently the same. Differentiate? Add a tsh
 * fx: better balloon shading
 * bug: fix incorrect viewports for discontinuous PIDs (like P1+P4)
 * ui: print player number next to energy bar
+* balance: reduce sudden death counter. I've NEVER seen it in practice.
