@@ -2914,8 +2914,8 @@ function vt_draw(_ENV)
  local msg=(winning_team>0)
    and ""..TEAM_NAMES[winning_team].." Team wins!"
     or "It's a tie!"
- local msgw=print(msg,0,200)
- dsprint(msg,120-msgw/2,100,msgc,C_BLACK)
+ local msgw=print(msg,0,200,msgc,false,2)
+ dsprint(msg,120-msgw/2,100,msgc,C_BLACK,false,2)
  -- navigation controls
  spr(btnspr(4,1),1,K_SCREEN_H-9, C_TRANSPARENT)
  dsprint("Rematch",10,K_SCREEN_H-8,C_WHITE,C_DARKGREY,true)
