@@ -1714,7 +1714,7 @@ function cb_update(_ENV)
    else new_sn="idlelr" p.hflip=p.dir.x<0 and 1 or 0
    end
   else
-   if p.move.y<0 then new_sn="walku" p.hflip=1
+   if p.move.y<0 then new_sn="walku" p.hflip=0
    elseif p.move.y>0 then new_sn="walkd" p.hflip=0
    else new_sn="walklr" p.hflip=p.move.x<0 and 1 or 0
    end
