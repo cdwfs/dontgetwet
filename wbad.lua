@@ -2734,7 +2734,7 @@ function vt_enter(args)
  end
  for i=1,20*#vt.targets do
   local bp=v2(rndt({-10,K_SCREEN_W+10}),
-   math.random(0,K_SCREEN_H/2))
+   math.random(0,K_SCREEN_H))
   local bt=60+math.random(30)//1
   add(vt.balloons,{
    pos0=v2cpy(bp),
@@ -2790,12 +2790,13 @@ function vt_update(_ENV)
      y1=grnd_y,
      vel=v2add(v2scl(bvel,0.2),v2(
       rnd(1)-0.5,rnd(1)-0.75)),
+     dark=rnd()<0.5,
      pp=players[1].yerrik_dream_mode,
     })
    end
    -- recycle balloon
    b.pos0=v2(rndt({-10,K_SCREEN_W+10}),
-    math.random(0,K_SCREEN_H/2))
+    math.random(0,K_SCREEN_H))
    b.pos=v2cpy(b.pos0)
    pos1=v2add(rndt(targets),
     v2(math.random(-6,6),math.random(-12,2)))
@@ -2829,6 +2830,7 @@ function vt_update(_ENV)
      pos=v2add(p.pos,dsp),
      y1=p.pos.y+7,
      vel=v2(0,0),
+     dark=rnd()<0.5,
      pp=p.yerrik_dream_mode,
     })
    end
@@ -2846,7 +2848,9 @@ function vt_draw(_ENV)
    elli(p.pos.x+4,p.y0+7,srx,sry,C_DARKGREY)
   else
    elli(p.pos.x+4,p.y0+7,18,4,
-        p.yerrik_dream_mode and C_BROWN or C_LIGHTBLUE)
+        p.yerrik_dream_mode and C_YELLOW or C_LIGHTBLUE)
+   elli(p.pos.x+4,p.y0+7,6,2,
+        p.yerrik_dream_mode and C_BROWN or C_DARKBLUE)
   end
  end
  -- draw loser balloon shadows
@@ -2867,7 +2871,10 @@ function vt_draw(_ENV)
  end
  -- draw water drops
  for _,d in ipairs(drops) do
-  pix(d.pos.x,d.pos.y,d.pp and C_YELLOW or C_LIGHTBLUE)
+  local c=d.dark and
+   (d.pp and C_ORANGE or C_DARKBLUE) or
+   (d.pp and C_YELLOW or C_LIGHTBLUE)
+  pix(d.pos.x,d.pos.y,c)
  end
  -- draw message
  local msgc=(winning_team>0)
