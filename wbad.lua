@@ -1061,7 +1061,7 @@ function team_enter(args)
   ihistory={1,1,1,1},
   balloons={},
   btargets={},
-  bsplatr=80,
+  bsplatr=60,
  })
  local tm=mode_team
  for i=1,4 do
@@ -1086,16 +1086,16 @@ function team_enter(args)
   p.yerrik_dream_mode=nil
  end
  local sr=tm.bsplatr
- local sw=1+K_SCREEN_W/(2*sr)
+ local sw=K_SCREEN_W/(2*sr)
  local sh=1+K_SCREEN_H/(2*sr)
  for y=0,sh do
   for x=0,sw do
-   add(tm.btargets,
-    v2(x*2*sr,y*2*sr)
-   )
-   add(tm.btargets,
-    v2(x*2*sr+sr,y*2*sr+sr)
-   )
+   local t1=v2(x*2*sr,y*2*sr)
+   local t2=v2(x*2*sr+sr,y*2*sr+sr)
+   add(tm.btargets,t1)
+   if t2.x-sr<K_SCREEN_W and t2.y-sr<K_SCREEN_H then
+    add(tm.btargets,t2)
+   end
   end
  end
  return mode_team
@@ -1283,6 +1283,12 @@ function team_update(_ENV)
      color=p.color,
     })
    end
+   -- sort transition balloons by distance from
+   -- screen (t1-t), higher distances first
+   table.sort(balloons,
+    function(a,b)
+     return a.t1-a.t>b.t1-b.t
+    end)
   end
  end
  -- update transition balloons
@@ -1365,7 +1371,7 @@ function team_draw(_ENV)
   local t01=b.t/b.t1
   if t01>=0 then
    draw_balloon(b.pos.x,b.pos.y,
-    lerp(1,bsplatr,t01*t01),b.team,
+    lerp(K_BALLOON_RADIUS,bsplatr,t01*t01*t01*t01),b.team,
     b.t,b.t1,K_SCREEN_H/2)
   end
  end
