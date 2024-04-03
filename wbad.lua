@@ -93,6 +93,7 @@ C_TAN=14
 C_YELLOW=15
 -- sounds
 SFX_STEP=1
+SFX_SPRINKLE=2
 SFX_MENU_CONFIRM=18
 SFX_MENU_MOVE=19
 SFX_MENU_CANCEL=20
@@ -1064,6 +1065,7 @@ function team_enter(args)
   p.faced=pp.faced
   p.facelr=pp.facelr
   p.anims=pp.anims
+  p.yerrik_dream_mode=nil
  end
  return mode_team
 end
@@ -1129,7 +1131,19 @@ function huevos(h,hi,p)
    walkd={anim({386,388,390,388},8),"walkd"},
    walku={anim({402,404,406,404},8),"walku"},
   },"idlelr")
-
+ end
+ -- dream mode
+ if hi>6
+ and h[mod1n(hi-5,K_HISTORY_MAX)]==0
+ and h[mod1n(hi-5,K_HISTORY_MAX)]==0
+ and h[mod1n(hi-4,K_HISTORY_MAX)]==1
+ and h[mod1n(hi-3,K_HISTORY_MAX)]==0
+ and h[mod1n(hi-2,K_HISTORY_MAX)]==1
+ and h[mod1n(hi-1,K_HISTORY_MAX)]==1 then
+  for _,pp in ipairs(mode_team.players) do
+   pp.yerrik_dream_mode=true
+  end
+  sfx(SFX_SPRINKLE,"D-4",-1,2)
  end
 end
 
@@ -1582,12 +1596,13 @@ function cb_update(_ENV)
     end
    end
    local disth=K_SPLASH_DIST/2
+   local wc=b.pp and C_YELLOW or C_LIGHTBLUE
    for i=1,50 do
     add(wparts,{
      pos=v2cpy(b.pos),
      vel=v2scl(v2rnd(),0.5+rnd(1)),
      ttl=disth+rnd()*K_SPLASH_DIST,
-     color=i<10 and b.color or C_LIGHTBLUE,
+     color=i<10 and b.color or wc,
      team=b.team,
     })
    end
@@ -1795,6 +1810,7 @@ function cb_update(_ENV)
     t1=40*1,
     pid=p.pid,
     team=p.team,
+    pp=p.yerrik_dream_mode,
     color=p.color,
     r=K_BALLOON_RADIUS,
    })
@@ -2237,8 +2253,9 @@ function cb_draw(_ENV)
    if rects_overlap(cull0,cull1,
        v2add(p2.pos,v2(-8,-8)),
        v2add(p2.pos,v2(8,8))) then
+    local ec=p2.yerrik_dream_mode and C_BROWN or C_DARKBLUE
     elli(p2.pos.x+4,p2.pos.y+7,
-         5,2,p2.eliminated and C_DARKBLUE or C_DARKGREY)
+         5,2,p2.eliminated and ec or C_DARKGREY)
     add(draws,{
      order=p2.pos.y, order2=p2.pos.x,
      f=draw_player, args={p2}
@@ -2458,6 +2475,10 @@ function draw_player(p)
  end
  local ybody,yface=p.pos.y+p.sink,
                    p.pos.y+p.sink-8
+ local soakdarkc=p.yerrik_dream_mode
+   and C_ORANGE or C_DARKBLUE
+ local soaklitec=p.yerrik_dream_mode
+   and C_YELLOW or C_LIGHTBLUE
  -- draw actual player
  local PAL_C1=6
  local PAL_C2=2
@@ -2465,9 +2486,9 @@ function draw_player(p)
  local PAL_S=14
  if p.eliminated then
   -- swap to "soaked" palette
-  poke4(2*0x03FF0,C_DARKBLUE)
+  poke4(2*0x03FF0,soakdarkc)
   for i=1,15 do
-   poke4(2*0x03FF0+i,C_LIGHTBLUE)
+   poke4(2*0x03FF0+i,soaklitec)
   end
  else
   -- palette-swap player-specific colors
@@ -2495,9 +2516,9 @@ function draw_player(p)
             p.pos.y-8+(K_HIT_COOLDOWN-p.hit_cooldown)//3-camera_y,
             16,16)
   -- swap to "soaked" palette
-  poke4(2*0x03FF0,C_DARKBLUE)
+  poke4(2*0x03FF0,soakdarkc)
   for i=1,15 do
-   poke4(2*0x03FF0+i,C_LIGHTBLUE)
+   poke4(2*0x03FF0+i,soaklitec)
   end
   spr(face,p.pos.x-4,yface,
       C_TRANSPARENT, 1,p.hflip,0, 2,1)
@@ -2510,10 +2531,10 @@ function draw_player(p)
   for _,d in ipairs(p.hit_drops) do
    pix(p.pos.x-2+d.pos.x,
        p.pos.y-7+d.pos.y,
-       C_LIGHTBLUE)
+       soaklitec)
    pix(p.pos.x-2+d.pos.x,
        p.pos.y-7+d.pos.y+1,
-       C_DARKBLUE)
+       soakdarkc)
   end
  end
  pop_clip()
@@ -2637,6 +2658,7 @@ function vt_update(_ENV)
      pos=v2add(p.pos,dsp),
      y1=p.pos.y+7,
      vel=v2(0,0),
+     pp=p.yerrik_dream_mode,
     })
    end
   end
@@ -2661,13 +2683,14 @@ function vt_draw(_ENV)
    local sry=lerp(2,1,(p.y0-p.pos.y)/10)
    elli(p.pos.x+4,p.y0+7,srx,sry,C_DARKGREY)
   else
-   elli(p.pos.x+4,p.y0+7,6,3,C_LIGHTBLUE)
+   elli(p.pos.x+4,p.y0+7,6,3,
+        p.yerrik_dream_mode and C_BROWN or C_LIGHTBLUE)
   end
   draw_player(p)
  end
  -- draw water drops
  for _,d in ipairs(drops) do
-  pix(d.pos.x,d.pos.y,C_LIGHTBLUE)
+  pix(d.pos.x,d.pos.y,d.pp and C_YELLOW or C_LIGHTBLUE)
  end
   spr(btnspr(4,1),1,K_SCREEN_H-9, C_TRANSPARENT)
   dsprint("Rematch",10,K_SCREEN_H-8,C_WHITE,C_DARKGREY,true)
@@ -3672,6 +3695,7 @@ end
 
 -- <SFX>
 -- 001:d600e600e600f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600f600600000000000
+-- 002:6000607060c060e060c06040600060006000600060007000700070008000900090009000a000a000b000b000c000c000d000e000e000e000f000f000362000000600
 -- 018:05006505a500f500f5006500b505f500f500c500e505f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500c72000000000
 -- 019:05096500a500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500c72000000000
 -- 020:0500650a9508f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500f500c62000000000
