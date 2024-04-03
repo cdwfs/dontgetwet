@@ -2541,12 +2541,8 @@ function draw_balloon(x,y,r,team,t,t1,h)
              r+r*cos(1.5+.04*t)/3
  elli(x,y-yoff,rx,ry,TEAM_COLORS2[team])
  elli(x+r/4,y-yoff-r/4,rx*.75,ry*.75,TEAM_COLORS[team])
+ elli(x+r/4,y-yoff-r/4,rx*.25,ry*.25,C_WHITE)
  ellib(x,y-yoff,rx+1,ry+1,C_BLACK)
- -- HACK: fake specular highlight
- -- on small in-game balloons
- if r==K_BALLOON_RADIUS then
-  pix(x+r/2,y-yoff-r/2,C_WHITE)
- end
 end
 
 function draw_energy_ui(x,y,w,h,energy)
