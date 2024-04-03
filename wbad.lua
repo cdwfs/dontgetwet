@@ -1834,13 +1834,14 @@ function cb_update(_ENV)
   local fpi=8*(foot.y%8)+(foot.x%8)
   local fc=peek4(2*(0x4000+32*mtid)+fpi)
   local new_sink=0
+  if fget(mtid,SF_SAND) then
+   if fc==C_YELLOW or C_WHITE or C_TAN then
+    new_sink=1
+   end
+  end
   if fget(mtid,SF_SHALLOW_WATER) then
    if fc==C_LIGHTBLUE or fc==C_DARKBLUE then
     new_sink=2
-   end
-  elseif fget(mtid,SF_SAND) then
-   if fc==C_YELLOW or C_WHITE or C_TAN then
-    new_sink=1
    end
   end
   if new_sink>p.sink then
