@@ -93,3 +93,5 @@ X art: up & down leg animations are currently the same. Differentiate? Add a tsh
 * ui: credits screen
 * publish: remove "kill everyone but player one" hack
 * publish: remove FPS display (or make it harder to trigger by accident)
+* publish: fix cover image (wrong palette, currently)
+* publish: make itch project site
