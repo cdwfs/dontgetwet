@@ -1,6 +1,4 @@
 TODO:
-- publish: fix cover image (wrong palette, currently)
-- publish: make itch project site
 - fx: spawn splash particles when characters enter or move in water
   
 DONE:
