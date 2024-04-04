@@ -964,7 +964,7 @@ function about_draw(_ENV)
   spr(btnspr(5),K_SCREEN_W/2+20,42,C_TRANSPARENT)
   dsprint("Throw Balloon",K_SCREEN_W/2+30,43,C_WHITE,C_BLACK)
 
-  dsprint("Scroll down\nfor details)",K_SCREEN_W/2+30,63,C_WHITE,C_BLACK)
+  dsprint("Scroll down\nfor details",K_SCREEN_W/2+30,63,C_WHITE,C_BLACK)
   line(2,80,K_SCREEN_W-4,80,C_WHITE)
   line(2,82,K_SCREEN_W-4,82,C_WHITE)
   dsprint("Manual",90,85,C_WHITE,C_BLACK,false,2)
