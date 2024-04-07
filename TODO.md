@@ -95,3 +95,5 @@ X art: up & down leg animations are currently the same. Differentiate? Add a tsh
 * publish: remove FPS display (or make it harder to trigger by accident)
 * publish: fix cover image (wrong palette, currently)
 * publish: make itch project site
+X ui: show current keybindings in help screen? No; keyboard play is at your own risk.
+* bug: randomize skin, then randomize hair from appropriate options

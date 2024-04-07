@@ -1588,16 +1588,14 @@ function create_player(pid,team)
    self.faced=self.facelr+16
    self.faceu=self.facelr+32
    -- randomize skin/hair
-   local ALL_SKINHAIRS={
-    {C_TAN,C_ORANGE},
-    {C_TAN,C_BROWN},
-    {C_TAN,C_BLACK},
-    {C_TAN,C_YELLOW},
-    {C_YELLOW,C_DARKGREY},
-    {C_BROWN,C_DARKGREY},
+   local ALL_SKINS={C_TAN,C_YELLOW,C_BROWN}
+   self.skinc=rndt(ALL_SKINS)
+   local ALL_HAIRS_FOR_SKIN={
+    [C_TAN]={C_ORANGE,C_BROWN,C_DARKGREY,C_YELLOW},
+    [C_YELLOW]={C_BROWN,C_DARKGREY},
+    [C_BROWN]={C_DARKGREY},
    }
-   self.skinc,self.hairc=
-    table.unpack(rndt(ALL_SKINHAIRS))
+   self.hairc=rndt(ALL_HAIRS_FOR_SKIN[self.skinc])
   end,
  })
  p.reset(p,pid,team)
